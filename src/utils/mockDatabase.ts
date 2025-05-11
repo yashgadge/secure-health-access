@@ -1,4 +1,3 @@
-
 // Mock Aadhaar database
 export const mockAadhaarDB = [
   {
@@ -18,6 +17,15 @@ export const mockAadhaarDB = [
     address: "456 Park Avenue, Delhi, Delhi",
     phone: "8765432109",
     email: "priya.patel@example.com"
+  },
+  {
+    aadhaarId: "345678901234",
+    name: "Dr. Anjali Desai",
+    dob: "1980-03-18",
+    gender: "Female",
+    address: "789 Hospital Road, Bangalore, Karnataka",
+    phone: "7654321098",
+    email: "doctor@example.com"
   }
 ];
 
