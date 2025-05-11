@@ -17,12 +17,22 @@ const Index = () => {
             <span className="text-xl font-bold text-medical-primary">MediRecord</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button asChild variant="outline">
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/login">Get Started</Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link to="/patient/login">Patient Login</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/doctor/login">Doctor Login</Link>
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button asChild>
+                <Link to="/patient/register">Patient Register</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/doctor/register">Doctor Register</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -38,10 +48,10 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button asChild size="lg" className="px-8">
-              <Link to="/login">Patient Login</Link>
+              <Link to="/patient/register">Register as Patient</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="px-8">
-              <Link to="/doctor-login">Doctor Login</Link>
+              <Link to="/doctor/register">Register as Doctor</Link>
             </Button>
           </div>
         </div>
@@ -67,9 +77,9 @@ const Index = () => {
                   <path d="M17 21v-2"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Secure Document Upload</h3>
+              <h3 className="text-xl font-semibold mb-2">Medical History Timeline</h3>
               <p className="text-gray-600">
-                Upload and store your medical documents with end-to-end encryption for maximum security.
+                View your complete medical history in a chronological timeline format.
               </p>
             </Card>
             
@@ -83,7 +93,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Aadhaar Authentication</h3>
               <p className="text-gray-600">
-                Log in securely with Aadhaar-based authentication to access your medical records.
+                Secure login with Aadhaar-based authentication and OTP verification.
               </p>
             </Card>
             
@@ -98,7 +108,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Doctor Access Control</h3>
               <p className="text-gray-600">
-                Grant and revoke access to specific doctors for your medical documents.
+                Grant and revoke access to specific doctors for your medical records.
               </p>
             </Card>
           </div>
@@ -111,19 +121,19 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 rounded-full bg-medical-primary text-white flex items-center justify-center mb-4 font-bold text-lg">1</div>
-            <h3 className="text-xl font-semibold mb-2">Create Account</h3>
+            <h3 className="text-xl font-semibold mb-2">Register</h3>
             <p className="text-gray-600">Sign up using your Aadhaar ID for quick and secure registration.</p>
           </div>
           
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 rounded-full bg-medical-primary text-white flex items-center justify-center mb-4 font-bold text-lg">2</div>
-            <h3 className="text-xl font-semibold mb-2">Upload Documents</h3>
-            <p className="text-gray-600">Upload your medical documents securely to your personal dashboard.</p>
+            <h3 className="text-xl font-semibold mb-2">View Medical History</h3>
+            <p className="text-gray-600">Access your complete medical history in an easy-to-read timeline.</p>
           </div>
           
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 rounded-full bg-medical-primary text-white flex items-center justify-center mb-4 font-bold text-lg">3</div>
-            <h3 className="text-xl font-semibold mb-2">Share with Doctors</h3>
+            <h3 className="text-xl font-semibold mb-2">Control Doctor Access</h3>
             <p className="text-gray-600">Grant access to your healthcare providers when needed.</p>
           </div>
         </div>
