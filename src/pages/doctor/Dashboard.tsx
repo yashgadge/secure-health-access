@@ -7,39 +7,92 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
-import { mockPatientDB } from '@/utils/mockDatabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+
+type Doctor = Database["public"]["Tables"]["doctors"]["Row"] & {
+  name: string;
+  email: string;
+};
+
+type Patient = Database["public"]["Tables"]["patients"]["Row"] & {
+  name: string;
+  authorizedDoctors?: string[];
+};
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<Doctor | null>(null);
   const [patientIdentifier, setPatientIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [showOTPInput, setShowOTPInput] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     // Check if user is logged in
-    const userType = sessionStorage.getItem("userType");
-    const storedUserData = sessionStorage.getItem("userData");
+    const checkSession = async () => {
+      setLoading(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Unauthorized Access",
+          description: "Please login as a doctor to view this page",
+          variant: "destructive"
+        });
+        navigate("/doctor/login");
+        return;
+      }
+      
+      // Fetch doctor profile data
+      const { data: doctorData, error } = await supabase
+        .from('doctors')
+        .select(`
+          id,
+          specialization,
+          hospital_affiliation,
+          license_number,
+          profiles:id (
+            name,
+            email
+          )
+        `)
+        .eq('id', session.user.id)
+        .single();
+      
+      if (error || !doctorData) {
+        console.error("Error fetching doctor data:", error);
+        toast({
+          title: "Access Error",
+          description: "Unable to fetch your profile. Please login again.",
+          variant: "destructive"
+        });
+        navigate("/doctor/login");
+        return;
+      }
+      
+      // Format doctor data for use in the component
+      const formattedDoctorData: Doctor = {
+        id: doctorData.id,
+        specialization: doctorData.specialization,
+        hospital_affiliation: doctorData.hospital_affiliation,
+        license_number: doctorData.license_number,
+        name: (doctorData.profiles as any).name,
+        email: (doctorData.profiles as any).email
+      };
+      
+      setUserData(formattedDoctorData);
+      setLoading(false);
+    };
     
-    if (userType !== "doctor" || !storedUserData) {
-      toast({
-        title: "Unauthorized Access",
-        description: "Please login as a doctor to view this page",
-        variant: "destructive"
-      });
-      navigate("/doctor/login");
-      return;
-    }
-    
-    // Parse user data
-    const parsedUserData = JSON.parse(storedUserData);
-    setUserData(parsedUserData);
+    checkSession();
   }, [navigate, toast]);
   
-  const handleRequestAccess = (e: React.FormEvent) => {
+  const handleRequestAccess = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate patient identifier
@@ -52,51 +105,90 @@ const DoctorDashboard = () => {
       return;
     }
     
-    // Check if patient exists
-    let patient;
-    if (patientIdentifier.startsWith("PAT")) {
-      // Search by Patient ID
-      patient = mockPatientDB.find(p => p.patientId === patientIdentifier);
-    } else {
-      // Search by Aadhaar ID
-      patient = mockPatientDB.find(p => p.aadhaarId === patientIdentifier);
-    }
-    
-    if (!patient) {
+    try {
+      // Check if patient exists by Aadhaar ID
+      const { data: patientData, error } = await supabase
+        .from('patients')
+        .select(`
+          id,
+          aadhaar_id,
+          gender,
+          dob,
+          profiles:id (
+            name
+          )
+        `)
+        .eq('aadhaar_id', patientIdentifier)
+        .single();
+      
+      if (error || !patientData) {
+        toast({
+          title: "Patient Not Found",
+          description: "No patient found with the provided information",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Check if doctor already has access
+      const { data: accessData, error: accessError } = await supabase
+        .from('doctor_patient_access')
+        .select('*')
+        .eq('doctor_id', userData?.id)
+        .eq('patient_id', patientData.id)
+        .single();
+      
+      if (accessData) {
+        // Doctor already has access, direct to patient history
+        toast({
+          title: "Access Already Granted",
+          description: "You already have access to this patient's records",
+        });
+        
+        const patient: Patient = {
+          id: patientData.id,
+          aadhaar_id: patientData.aadhaar_id,
+          gender: patientData.gender,
+          dob: patientData.dob,
+          address: patientData.address,
+          name: (patientData.profiles as any).name,
+        };
+        
+        // Store the selected patient for use in PatientHistory component
+        sessionStorage.setItem("selectedPatient", JSON.stringify(patient));
+        navigate("/doctor/patient-history");
+        return;
+      }
+      
+      // Format patient data
+      const patient: Patient = {
+        id: patientData.id,
+        aadhaar_id: patientData.aadhaar_id,
+        gender: patientData.gender,
+        dob: patientData.dob,
+        address: patientData.address,
+        name: (patientData.profiles as any).name,
+      };
+      
+      // Request OTP for access
+      setSelectedPatient(patient);
+      setShowOTPInput(true);
+      
       toast({
-        title: "Patient Not Found",
-        description: "No patient found with the provided information",
+        title: "Access Request Sent",
+        description: "Ask patient to share the OTP displayed on their device",
+      });
+    } catch (err) {
+      console.error("Error checking patient:", err);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your request",
         variant: "destructive"
       });
-      return;
     }
-    
-    // Check if doctor already has access
-    if (patient.authorizedDoctors && patient.authorizedDoctors.includes(userData.doctorId)) {
-      // Doctor already has access, direct to patient history
-      toast({
-        title: "Access Already Granted",
-        description: "You already have access to this patient's records",
-      });
-      
-      setSelectedPatient(patient);
-      // Store the selected patient for use in PatientHistory component
-      sessionStorage.setItem("selectedPatient", JSON.stringify(patient));
-      navigate("/doctor/patient-history");
-      return;
-    }
-    
-    // Request OTP for access
-    setSelectedPatient(patient);
-    setShowOTPInput(true);
-    
-    toast({
-      title: "Access Request Sent",
-      description: "Ask patient to share the OTP displayed on their device",
-    });
   };
   
-  const handleVerifyOTP = (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Verify OTP (mock verification - any 6-digit OTP is accepted)
@@ -109,18 +201,32 @@ const DoctorDashboard = () => {
       return;
     }
     
-    // Update patient's authorized doctors list
-    if (selectedPatient) {
-      const updatedPatient = {
-        ...selectedPatient,
-        authorizedDoctors: [...(selectedPatient.authorizedDoctors || []), userData.doctorId]
-      };
+    if (!userData || !selectedPatient) {
+      toast({
+        title: "Error",
+        description: "Missing user or patient data",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Add doctor access record
+      const { error } = await supabase
+        .from('doctor_patient_access')
+        .insert({
+          doctor_id: userData.id,
+          patient_id: selectedPatient.id,
+        });
       
-      // In a real app, this would update the database
-      // Update mock data for demo purposes
-      const patientIndex = mockPatientDB.findIndex(p => p.patientId === selectedPatient.patientId);
-      if (patientIndex !== -1) {
-        mockPatientDB[patientIndex] = updatedPatient;
+      if (error) {
+        console.error("Error granting access:", error);
+        toast({
+          title: "Access Error",
+          description: "Failed to grant access to patient records",
+          variant: "destructive"
+        });
+        return;
       }
       
       toast({
@@ -129,15 +235,22 @@ const DoctorDashboard = () => {
       });
       
       // Store the selected patient for use in PatientHistory component
-      sessionStorage.setItem("selectedPatient", JSON.stringify(updatedPatient));
+      sessionStorage.setItem("selectedPatient", JSON.stringify(selectedPatient));
       
       // Navigate to patient history page
       navigate("/doctor/patient-history");
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your request",
+        variant: "destructive"
+      });
     }
   };
   
-  const handleLogout = () => {
-    sessionStorage.removeItem("userType");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     sessionStorage.removeItem("userData");
     sessionStorage.removeItem("selectedPatient");
     toast({
@@ -146,6 +259,18 @@ const DoctorDashboard = () => {
     });
     navigate("/");
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex justify-center items-center h-64">
+            <p>Loading doctor dashboard...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!userData) {
     return null; // Will redirect in useEffect
@@ -176,7 +301,7 @@ const DoctorDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-sm text-gray-500">Doctor ID</p>
-                      <p className="font-medium">{userData.doctorId}</p>
+                      <p className="font-medium">{userData.id}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-gray-500">Name</p>
@@ -192,7 +317,7 @@ const DoctorDashboard = () => {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-gray-500">Hospital Affiliation</p>
-                      <p className="font-medium">{userData.hospitalAffiliation}</p>
+                      <p className="font-medium">{userData.hospital_affiliation}</p>
                     </div>
                   </div>
                 </div>
@@ -211,16 +336,16 @@ const DoctorDashboard = () => {
                   <form onSubmit={handleRequestAccess}>
                     <div className="grid gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="patientId">Patient ID or Aadhaar Number</Label>
+                        <Label htmlFor="patientId">Patient Aadhaar Number</Label>
                         <Input 
                           id="patientId"
                           type="text" 
-                          placeholder="Enter Patient ID (e.g., PAT103245) or Aadhaar number" 
+                          placeholder="Enter Aadhaar number (e.g., 123456789012)" 
                           value={patientIdentifier}
                           onChange={(e) => setPatientIdentifier(e.target.value)}
                           required
                         />
-                        <p className="text-sm text-gray-500">For demo: Try PAT103245 or 123456789012</p>
+                        <p className="text-sm text-gray-500">Enter the patient's 12-digit Aadhaar number</p>
                       </div>
                       
                       <Button type="submit" className="w-full">Request Access</Button>
@@ -233,7 +358,7 @@ const DoctorDashboard = () => {
                         <p className="font-medium">Requesting access to:</p>
                         <div className="mt-2">
                           <p><span className="text-gray-500">Name:</span> {selectedPatient?.name}</p>
-                          <p><span className="text-gray-500">Patient ID:</span> {selectedPatient?.patientId}</p>
+                          <p><span className="text-gray-500">Aadhaar ID:</span> {selectedPatient?.aadhaar_id}</p>
                         </div>
                       </div>
                       
