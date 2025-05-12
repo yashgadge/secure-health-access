@@ -1,14 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+
+// Import the new components
+import PatientList from '@/components/doctor/PatientList';
+import OTPVerification from '@/components/doctor/OTPVerification';
+import DoctorProfile from '@/components/doctor/DoctorProfile';
 
 type Doctor = Database["public"]["Tables"]["doctors"]["Row"] & {
   name: string;
@@ -149,8 +152,6 @@ const DoctorDashboard = () => {
           aadhaar_id: patientData.aadhaar_id,
           gender: patientData.gender,
           dob: patientData.dob,
-          // Remove the reference to address as it's not in the patientData type
-          // address: patientData.address,
           name: (patientData.profiles as any).name,
         };
         
@@ -166,8 +167,6 @@ const DoctorDashboard = () => {
         aadhaar_id: patientData.aadhaar_id,
         gender: patientData.gender,
         dob: patientData.dob,
-        // Remove the reference to address as it's not in the patientData type
-        // address: patientData.address,
         name: (patientData.profiles as any).name,
       };
       
@@ -261,6 +260,12 @@ const DoctorDashboard = () => {
     navigate("/");
   };
 
+  const handleCancelOTP = () => {
+    setShowOTPInput(false);
+    setSelectedPatient(null);
+    setOtp("");
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -292,112 +297,25 @@ const DoctorDashboard = () => {
           </TabsList>
           
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Doctor Profile</CardTitle>
-                <CardDescription>Your professional information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Doctor ID</p>
-                      <p className="font-medium">{userData.id}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">{userData.name}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{userData.email}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Specialization</p>
-                      <p className="font-medium">{userData.specialization}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Hospital Affiliation</p>
-                      <p className="font-medium">{userData.hospital_affiliation}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <DoctorProfile userData={userData} />
           </TabsContent>
           
           <TabsContent value="access">
-            <Card>
-              <CardHeader>
-                <CardTitle>Patient Access</CardTitle>
-                <CardDescription>Access patient records with their permission</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!showOTPInput ? (
-                  <form onSubmit={handleRequestAccess}>
-                    <div className="grid gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="patientId">Patient Aadhaar Number</Label>
-                        <Input 
-                          id="patientId"
-                          type="text" 
-                          placeholder="Enter Aadhaar number (e.g., 123456789012)" 
-                          value={patientIdentifier}
-                          onChange={(e) => setPatientIdentifier(e.target.value)}
-                          required
-                        />
-                        <p className="text-sm text-gray-500">Enter the patient's 12-digit Aadhaar number</p>
-                      </div>
-                      
-                      <Button type="submit" className="w-full">Request Access</Button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleVerifyOTP}>
-                    <div className="grid gap-6">
-                      <div className="p-4 bg-gray-50 rounded-md">
-                        <p className="font-medium">Requesting access to:</p>
-                        <div className="mt-2">
-                          <p><span className="text-gray-500">Name:</span> {selectedPatient?.name}</p>
-                          <p><span className="text-gray-500">Aadhaar ID:</span> {selectedPatient?.aadhaar_id}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <Label htmlFor="otp">One-Time Password from Patient</Label>
-                        <Input 
-                          id="otp"
-                          type="text" 
-                          placeholder="Enter 6-digit OTP shared by patient" 
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
-                          maxLength={6}
-                          required
-                        />
-                        <p className="text-sm text-gray-500">
-                          For demo purposes, enter any 6 digits
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-4">
-                        <Button type="submit" className="flex-1">Verify OTP</Button>
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          onClick={() => {
-                            setShowOTPInput(false);
-                            setSelectedPatient(null);
-                            setOtp("");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
+            {!showOTPInput ? (
+              <PatientList 
+                patientIdentifier={patientIdentifier}
+                setPatientIdentifier={setPatientIdentifier}
+                handleRequestAccess={handleRequestAccess}
+              />
+            ) : (
+              <OTPVerification 
+                selectedPatient={selectedPatient}
+                otp={otp}
+                setOtp={setOtp}
+                handleVerifyOTP={handleVerifyOTP}
+                handleCancel={handleCancelOTP}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>
