@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -6,22 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 
-// Import the new components
+// Import the types from our new types file
+import { Doctor, Patient } from '@/components/doctor/PatientTypes';
+
+// Import the components
 import PatientList from '@/components/doctor/PatientList';
 import OTPVerification from '@/components/doctor/OTPVerification';
 import DoctorProfile from '@/components/doctor/DoctorProfile';
-
-type Doctor = Database["public"]["Tables"]["doctors"]["Row"] & {
-  name: string;
-  email: string;
-};
-
-type Patient = Database["public"]["Tables"]["patients"]["Row"] & {
-  name: string;
-  authorizedDoctors?: string[];
-};
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -147,6 +138,8 @@ const DoctorDashboard = () => {
           description: "You already have access to this patient's records",
         });
         
+        // Create the patient object with the returned data
+        // Now address is optional in our Patient type, so this won't cause a TypeScript error
         const patient: Patient = {
           id: patientData.id,
           aadhaar_id: patientData.aadhaar_id,
@@ -162,6 +155,7 @@ const DoctorDashboard = () => {
       }
       
       // Format patient data
+      // Now address is optional in our Patient type, so this won't cause a TypeScript error
       const patient: Patient = {
         id: patientData.id,
         aadhaar_id: patientData.aadhaar_id,
