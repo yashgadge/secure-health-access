@@ -7,8 +7,13 @@ export type Doctor = Database["public"]["Tables"]["doctors"]["Row"] & {
   email: string;
 };
 
-// Define the Patient type with address as optional
-export type Patient = Database["public"]["Tables"]["patients"]["Row"] & {
+// Define the Patient type with all optional fields from the database schema
+export type Patient = {
+  id: string;
+  aadhaar_id: string;
+  gender: string | null;
+  dob: string | null;
+  address?: string | null;
   name: string;
   authorizedDoctors?: string[];
 };
