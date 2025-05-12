@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { mockDoctorDB, mockAadhaarDB } from '@/utils/mockDatabase';
+import { mockDoctorDB, mockAadhaarDB, addNewAadhaarToMockDB } from '@/utils/mockDatabase';
 
 const DoctorLogin = () => {
   const navigate = useNavigate();
@@ -34,21 +33,17 @@ const DoctorLogin = () => {
     if (!doctorExists) {
       toast({
         title: "Doctor not found",
-        description: "No doctor account found with this Aadhaar ID",
+        description: "No doctor account found with this Aadhaar ID. Please register first.",
         variant: "destructive"
       });
       return;
     }
     
-    // Find user in Aadhaar DB
-    const userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+    // Find user in Aadhaar DB or add it if it doesn't exist
+    let userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
     if (!userData) {
-      toast({
-        title: "User not found",
-        description: "User not found in Aadhaar database",
-        variant: "destructive"
-      });
-      return;
+      // In case the doctor record exists but Aadhaar record doesn't
+      userData = addNewAadhaarToMockDB(aadhaarId);
     }
     
     // Mock OTP sending

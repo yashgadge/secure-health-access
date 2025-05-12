@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { mockAadhaarDB, generatePatientId } from '@/utils/mockDatabase';
+import { mockAadhaarDB, generatePatientId, addNewAadhaarToMockDB } from '@/utils/mockDatabase';
 
 const PatientRegister = () => {
   const navigate = useNavigate();
@@ -31,15 +31,16 @@ const PatientRegister = () => {
       return;
     }
     
-    // Check if Aadhaar ID exists in mock DB
-    const user = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+    // Check if Aadhaar ID exists in mock DB, if not, add it
+    let user = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
     if (!user) {
+      // Add new Aadhaar with generated mock data
+      user = addNewAadhaarToMockDB(aadhaarId);
+      
       toast({
-        title: "Aadhaar ID not found",
-        description: "The entered Aadhaar ID is not registered in our system",
-        variant: "destructive"
+        title: "New Aadhaar ID Registered",
+        description: "We've created a profile for your new Aadhaar ID",
       });
-      return;
     }
     
     // Auto-generate Patient ID
@@ -116,7 +117,7 @@ const PatientRegister = () => {
                         maxLength={12}
                         required
                       />
-                      <p className="text-sm text-gray-500">For demo: Try 123456789012 or 234567890123</p>
+                      <p className="text-sm text-gray-500">Enter any 12-digit number for testing</p>
                     </div>
                     
                     <Button type="submit" className="w-full">Verify Aadhaar</Button>

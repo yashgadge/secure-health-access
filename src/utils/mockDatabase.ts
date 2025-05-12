@@ -1,3 +1,4 @@
+
 // Mock Aadhaar database
 export const mockAadhaarDB = [
   {
@@ -105,4 +106,66 @@ export const generateDoctorId = (): string => {
 // Generate mock OTP
 export const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Generate random user data
+export const generateRandomUserData = (aadhaarId: string) => {
+  const firstNames = ["Arun", "Vikram", "Neha", "Sanjay", "Priya", "Ravi", "Anita", "Kiran", "Meera", "Raj"];
+  const lastNames = ["Sharma", "Patel", "Singh", "Kumar", "Gupta", "Shah", "Verma", "Joshi", "Mehta", "Das"];
+  const cities = ["Mumbai", "Delhi", "Bangalore", "Pune", "Chennai", "Hyderabad", "Kolkata", "Ahmedabad"];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const name = `${firstName} ${lastName}`;
+  
+  // Generate a random date of birth (between 18 and 80 years ago)
+  const now = new Date();
+  const minAge = 18;
+  const maxAge = 80;
+  const randomAge = Math.floor(Math.random() * (maxAge - minAge + 1)) + minAge;
+  const birthYear = now.getFullYear() - randomAge;
+  const birthMonth = Math.floor(Math.random() * 12) + 1;
+  const birthDay = Math.floor(Math.random() * 28) + 1; // Avoid invalid dates by using max 28
+  const dob = `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`;
+  
+  // Generate a random 10-digit phone number
+  const phone = `9${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`;
+  
+  // Generate a random address
+  const addressNum = Math.floor(Math.random() * 999) + 1;
+  const city = cities[Math.floor(Math.random() * cities.length)];
+  const address = `${addressNum} ${lastName} Street, ${city}`;
+  
+  // Generate email based on name
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
+  
+  // Randomly assign gender
+  const gender = Math.random() > 0.5 ? "Male" : "Female";
+  
+  return {
+    aadhaarId,
+    name,
+    dob,
+    gender,
+    address,
+    phone,
+    email
+  };
+};
+
+// Add new Aadhaar ID to the mock database
+export const addNewAadhaarToMockDB = (aadhaarId: string) => {
+  // Check if the Aadhaar ID already exists
+  const existingUser = mockAadhaarDB.find(user => user.aadhaarId === aadhaarId);
+  if (existingUser) {
+    return existingUser;
+  }
+  
+  // Generate random user data
+  const newUserData = generateRandomUserData(aadhaarId);
+  
+  // Add to mock DB
+  mockAadhaarDB.push(newUserData);
+  
+  return newUserData;
 };
