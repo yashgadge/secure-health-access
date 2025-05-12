@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -150,7 +149,8 @@ const DoctorDashboard = () => {
           aadhaar_id: patientData.aadhaar_id,
           gender: patientData.gender,
           dob: patientData.dob,
-          address: patientData.address,
+          // Remove the reference to address as it's not in the patientData type
+          // address: patientData.address,
           name: (patientData.profiles as any).name,
         };
         
@@ -166,7 +166,8 @@ const DoctorDashboard = () => {
         aadhaar_id: patientData.aadhaar_id,
         gender: patientData.gender,
         dob: patientData.dob,
-        address: patientData.address,
+        // Remove the reference to address as it's not in the patientData type
+        // address: patientData.address,
         name: (patientData.profiles as any).name,
       };
       
