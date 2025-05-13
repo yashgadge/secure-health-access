@@ -37,10 +37,15 @@ const AdminDashboard = () => {
   }, []);
 
   const loadData = () => {
-    // Re-initialize mock databases from localStorage
+    // Force re-initialize mock databases from localStorage
     initMockDatabases();
+    
+    // Create fresh copies of the arrays to trigger re-render
     setPatients([...mockPatientDB]);
     setDoctors([...mockDoctorDB]);
+    
+    console.log("Admin Dashboard loaded patients:", mockPatientDB);
+    console.log("Admin Dashboard loaded doctors:", mockDoctorDB);
   };
 
   const refreshData = () => {
