@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -135,7 +134,7 @@ const DoctorDashboard = () => {
       toast({
         title: "Already Added",
         description: `Patient ${patientIdToAdd} is already in your patient list`,
-        variant: "info"
+        variant: "default"
       });
       setLoadingAdd(false);
       return;
@@ -152,7 +151,7 @@ const DoctorDashboard = () => {
       toast({
         title: "Request Already Sent",
         description: `A request for patient ${patientIdToAdd} is already pending`,
-        variant: "info"
+        variant: "default"
       });
       setLoadingAdd(false);
       return;
@@ -210,7 +209,7 @@ const DoctorDashboard = () => {
       toast({
         title: "Access Already Granted",
         description: `You already have access to patient ${patient.patientId}'s records`,
-        variant: "info"
+        variant: "default"
       });
       setLoadingRequest(false);
       
@@ -231,7 +230,7 @@ const DoctorDashboard = () => {
       toast({
         title: "Request Already Sent",
         description: `A request for patient ${patient.patientId} is already pending`,
-        variant: "info"
+        variant: "default"
       });
       setLoadingRequest(false);
       return;

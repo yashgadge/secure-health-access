@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -11,11 +10,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Check, Upload, FileText, Clock, User, Calendar } from 'lucide-react';
+import { X, Check, Upload, FileText, Clock } from 'lucide-react';
 import { 
   mockMedicalHistoryDB, 
   mockDoctorDB, 
-  mockPatientFilesDB, 
+  mockPatientFilesDB,
+  mockPatientDB, // Added this import
   getAccessRequests, 
   updateAccessRequest,
   persistMockDatabases
@@ -97,6 +97,8 @@ const FileUploader = ({ patientId, onUploadComplete }: { patientId: string, onUp
           {
             id: `MH${Date.now()}`,
             date: new Date().toISOString().slice(0, 10),
+            doctorId: "", // Add doctorId property
+            doctorName: "Self Upload", // Add doctorName property
             notes: fileDescription || `Uploaded ${file.name}`,
             documents: [
               {
@@ -112,6 +114,8 @@ const FileUploader = ({ patientId, onUploadComplete }: { patientId: string, onUp
       mockMedicalHistoryDB[patientHistoryIndex].entries.push({
         id: `MH${Date.now()}`,
         date: new Date().toISOString().slice(0, 10),
+        doctorId: "", // Add doctorId property
+        doctorName: "Self Upload", // Add doctorName property
         notes: fileDescription || `Uploaded ${file.name}`,
         documents: [
           {
