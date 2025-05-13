@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,17 @@ const DoctorLogin = () => {
   const [aadhaarId, setAadhaarId] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+
+  // Check for existing login on component mount
+  useEffect(() => {
+    const userType = localStorage.getItem("userType");
+    const userData = localStorage.getItem("userData");
+    
+    if (userType === "doctor" && userData) {
+      // User is already logged in as a doctor
+      navigate("/doctor/dashboard");
+    }
+  }, [navigate]);
 
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +83,7 @@ const DoctorLogin = () => {
     const doctorData = mockDoctorDB.find(d => d.aadhaarId === aadhaarId);
     
     if (doctorData) {
-      // Store doctor data in localStorage
+      // Store doctor data in localStorage for persistence
       localStorage.setItem("userType", "doctor");
       localStorage.setItem("userData", JSON.stringify(doctorData));
       
@@ -83,6 +94,7 @@ const DoctorLogin = () => {
       
       navigate("/doctor/dashboard");
     } else {
+      // This should not happen given our earlier checks
       toast({
         title: "Login Failed",
         description: "Please register first before attempting to login",

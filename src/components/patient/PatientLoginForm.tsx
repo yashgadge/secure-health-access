@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 // Import mock data
-import { mockAadhaarDB } from '@/utils/mockDatabase';
+import { mockAadhaarDB, mockPatientDB } from '@/utils/mockDatabase';
 
 const PatientLoginForm = () => {
   const navigate = useNavigate();
@@ -32,11 +32,22 @@ const PatientLoginForm = () => {
       }
       
       // Check if Aadhaar ID exists in mock DB
-      const patient = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
-      if (!patient) {
+      const aadhaarUser = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+      if (!aadhaarUser) {
         toast({
           title: "Aadhaar ID not found",
-          description: "The entered Aadhaar ID is not registered in our system",
+          description: "The entered Aadhaar ID is not registered in our system. Please register first.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Check if patient record exists for this Aadhaar ID
+      const patientExists = mockPatientDB.some(p => p.aadhaarId === aadhaarId);
+      if (!patientExists) {
+        toast({
+          title: "Patient not registered",
+          description: "Please complete patient registration with your Aadhaar ID first.",
           variant: "destructive"
         });
         return;
@@ -46,7 +57,7 @@ const PatientLoginForm = () => {
       setOtpSent(true);
       toast({
         title: "OTP Sent",
-        description: `A mock OTP has been sent to ${patient.phone.substring(0, 2)}****${patient.phone.substring(6)}`,
+        description: `A mock OTP has been sent to ${aadhaarUser.phone.substring(0, 2)}****${aadhaarUser.phone.substring(6)}`,
       });
     } else {
       // Verify OTP (mock verification - any 6-digit OTP is accepted)
@@ -60,16 +71,23 @@ const PatientLoginForm = () => {
       }
       
       // Login successful
-      const patient = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+      const patient = mockPatientDB.find(p => p.aadhaarId === aadhaarId);
       if (patient) {
-        // Store patient data in session storage
-        sessionStorage.setItem("userType", "patient");
-        sessionStorage.setItem("userData", JSON.stringify(patient));
+        // Store patient data in localStorage for persistence
+        localStorage.setItem("userType", "patient");
+        localStorage.setItem("userData", JSON.stringify(patient));
         toast({
           title: "Login Successful",
           description: `Welcome, ${patient.name}!`,
         });
         navigate("/patient-dashboard");
+      } else {
+        // This should not happen given our earlier checks
+        toast({
+          title: "Login Failed",
+          description: "Please register first before attempting to login",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -97,6 +115,11 @@ const PatientLoginForm = () => {
                 disabled={otpSent}
                 required
               />
+              {!otpSent && (
+                <p className="text-sm text-gray-500 mt-1">
+                  For demo: 123456789012
+                </p>
+              )}
             </div>
             
             {otpSent && (
@@ -125,7 +148,7 @@ const PatientLoginForm = () => {
       </CardContent>
       <CardFooter className="flex flex-col">
         <p className="text-sm text-gray-500 text-center w-full">
-          By logging in, you agree to our Terms of Service and Privacy Policy
+          Don't have an account? <Link to="/patient/register" className="text-blue-600 hover:underline">Register here</Link>
         </p>
       </CardFooter>
     </Card>

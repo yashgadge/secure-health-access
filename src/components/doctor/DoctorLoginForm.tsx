@@ -25,17 +25,28 @@ const DoctorLoginForm = () => {
     );
     
     if (!doctor) {
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password",
-        variant: "destructive"
-      });
+      // Check if email exists but password is wrong
+      const doctorEmailExists = mockDoctorDB.some(d => d.email === doctorEmail);
+      
+      if (doctorEmailExists) {
+        toast({
+          title: "Login Failed",
+          description: "Invalid password. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Doctor not found",
+          description: "No account found with this email. Please register first.",
+          variant: "destructive"
+        });
+      }
       return;
     }
     
     // Login successful
-    sessionStorage.setItem("userType", "doctor");
-    sessionStorage.setItem("userData", JSON.stringify(doctor));
+    localStorage.setItem("userType", "doctor");
+    localStorage.setItem("userData", JSON.stringify(doctor));
     toast({
       title: "Login Successful",
       description: `Welcome, ${doctor.name}!`,
@@ -91,7 +102,7 @@ const DoctorLoginForm = () => {
       </CardContent>
       <CardFooter className="flex flex-col">
         <p className="text-sm text-gray-500 text-center w-full">
-          Need access? Contact your hospital administrator
+          Need access? <Link to="/doctor/register" className="text-blue-600 hover:underline">Register here</Link>
         </p>
       </CardFooter>
     </Card>

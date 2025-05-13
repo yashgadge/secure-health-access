@@ -191,6 +191,9 @@ export const addNewAadhaarToMockDB = (aadhaarId: string) => {
   // Add to mock DB
   mockAadhaarDB.push(newUserData);
   
+  // Save to localStorage for persistence
+  persistMockDatabases();
+  
   return newUserData;
 };
 
@@ -244,9 +247,6 @@ export const initMockDatabases = () => {
   const storedPatientFilesDB = loadFromLocalStorage('patientFilesDB', mockPatientFilesDB);
   mockPatientFilesDB.length = 0;
   mockPatientFilesDB.push(...storedPatientFilesDB);
-  
-  // Save initial state to localStorage
-  persistMockDatabases();
 };
 
 // Persist mock databases to localStorage
@@ -311,6 +311,49 @@ export const getPatientsByDoctor = (doctorId: string) => {
   );
   
   return accessApproved;
+};
+
+// Export data to Excel format
+export const exportDataToCSV = (dataType: 'patients' | 'doctors') => {
+  let data = [];
+  let headers = [];
+  
+  if (dataType === 'patients') {
+    data = mockPatientDB;
+    headers = ['patientId', 'name', 'email', 'phone', 'aadhaarId', 'authorizedDoctors'];
+  } else {
+    data = mockDoctorDB;
+    headers = ['doctorId', 'name', 'email', 'specialization', 'hospitalAffiliation', 'aadhaarId'];
+  }
+  
+  // Create CSV content
+  let csvContent = headers.join(',') + '\n';
+  
+  data.forEach(item => {
+    let row = headers.map(header => {
+      let value = item[header as keyof typeof item];
+      
+      // Handle arrays (like authorizedDoctors)
+      if (Array.isArray(value)) {
+        value = `"${value.join('; ')}"`;
+      }
+      
+      // Escape commas in string values
+      if (typeof value === 'string' && value.includes(',')) {
+        value = `"${value}"`;
+      }
+      
+      return value || '';
+    });
+    
+    csvContent += row.join(',') + '\n';
+  });
+  
+  // Create downloadable link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  return { url, filename: `${dataType}_${new Date().toISOString().split('T')[0]}.csv` };
 };
 
 // Call initialize on page load
