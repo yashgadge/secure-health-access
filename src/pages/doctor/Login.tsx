@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { mockDoctorDB, mockAadhaarDB, addNewAadhaarToMockDB } from '@/utils/mockDatabase';
+import { mockDoctorDB, mockAadhaarDB, addNewAadhaarToMockDB, persistMockDatabases } from '@/utils/mockDatabase';
 
 const DoctorLogin = () => {
   const navigate = useNavigate();
@@ -71,9 +72,9 @@ const DoctorLogin = () => {
     const doctorData = mockDoctorDB.find(d => d.aadhaarId === aadhaarId);
     
     if (doctorData) {
-      // Store doctor data in session storage
-      sessionStorage.setItem("userType", "doctor");
-      sessionStorage.setItem("userData", JSON.stringify(doctorData));
+      // Store doctor data in localStorage
+      localStorage.setItem("userType", "doctor");
+      localStorage.setItem("userData", JSON.stringify(doctorData));
       
       toast({
         title: "Login Successful",
@@ -151,7 +152,7 @@ const DoctorLogin = () => {
             <CardFooter className="flex justify-center">
               <p className="text-sm text-gray-500">
                 Don't have an account?{" "}
-                <Link to="/doctor/register" className="text-medical-primary hover:underline">
+                <Link to="/doctor/register" className="text-blue-600 hover:underline">
                   Register here
                 </Link>
               </p>

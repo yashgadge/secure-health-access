@@ -3,11 +3,188 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { mockMedicalHistoryDB, mockDoctorDB } from '@/utils/mockDatabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { X, Check, Upload, FileText, Clock, User, Calendar } from 'lucide-react';
+import { 
+  mockMedicalHistoryDB, 
+  mockDoctorDB, 
+  mockPatientFilesDB, 
+  getAccessRequests, 
+  updateAccessRequest,
+  persistMockDatabases
+} from '@/utils/mockDatabase';
+
+// Create a simple file uploader component
+const FileUploader = ({ patientId, onUploadComplete }: { patientId: string, onUploadComplete: () => void }) => {
+  const { toast } = useToast();
+  const [fileTitle, setFileTitle] = useState("");
+  const [fileDescription, setFileDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = () => {
+    if (!file) {
+      toast({
+        title: "File Required",
+        description: "Please select a file to upload",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!fileTitle) {
+      toast({
+        title: "Title Required",
+        description: "Please enter a title for this record",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    // Create a mock URL for the file
+    const fileURL = "#";
+    const fileType = file.type.split('/')[1] || 'document';
+    
+    // Find patient files or create new entry
+    const patientFilesIndex = mockPatientFilesDB.findIndex(p => p.patientId === patientId);
+    
+    if (patientFilesIndex === -1) {
+      // Create new patient files entry
+      mockPatientFilesDB.push({
+        patientId,
+        files: [
+          {
+            name: file.name,
+            type: fileType,
+            date: new Date().toISOString().slice(0, 10),
+            url: fileURL
+          }
+        ]
+      });
+    } else {
+      // Add to existing files
+      mockPatientFilesDB[patientFilesIndex].files.push({
+        name: file.name,
+        type: fileType,
+        date: new Date().toISOString().slice(0, 10),
+        url: fileURL
+      });
+    }
+    
+    // Add to medical history
+    const patientHistoryIndex = mockMedicalHistoryDB.findIndex(h => h.patientId === patientId);
+    
+    if (patientHistoryIndex === -1) {
+      // Create new entry
+      mockMedicalHistoryDB.push({
+        patientId,
+        entries: [
+          {
+            id: `MH${Date.now()}`,
+            date: new Date().toISOString().slice(0, 10),
+            notes: fileDescription || `Uploaded ${file.name}`,
+            documents: [
+              {
+                name: file.name,
+                url: fileURL
+              }
+            ]
+          }
+        ]
+      });
+    } else {
+      // Add to existing history
+      mockMedicalHistoryDB[patientHistoryIndex].entries.push({
+        id: `MH${Date.now()}`,
+        date: new Date().toISOString().slice(0, 10),
+        notes: fileDescription || `Uploaded ${file.name}`,
+        documents: [
+          {
+            name: file.name,
+            url: fileURL
+          }
+        ]
+      });
+    }
+    
+    // Persist data
+    persistMockDatabases();
+    
+    // Reset form
+    setFile(null);
+    setFileTitle("");
+    setFileDescription("");
+    setUploading(false);
+    
+    toast({
+      title: "File Uploaded",
+      description: "Your medical record has been uploaded successfully",
+    });
+    
+    onUploadComplete();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2">
+        <Label htmlFor="fileTitle">Record Title</Label>
+        <Input
+          id="fileTitle"
+          value={fileTitle}
+          onChange={(e) => setFileTitle(e.target.value)}
+          placeholder="e.g., Blood Test Results"
+        />
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="fileDescription">Description (Optional)</Label>
+        <Textarea
+          id="fileDescription"
+          value={fileDescription}
+          onChange={(e) => setFileDescription(e.target.value)}
+          placeholder="Add notes about this medical record"
+          rows={3}
+        />
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="file">Upload File</Label>
+        <Input
+          id="file"
+          type="file"
+          onChange={handleFileChange}
+        />
+        {file && (
+          <p className="text-sm text-gray-500">Selected: {file.name}</p>
+        )}
+      </div>
+      
+      <Button
+        onClick={handleUpload}
+        disabled={uploading || !file}
+        className="w-full"
+      >
+        <Upload className="h-4 w-4 mr-2" />
+        {uploading ? "Uploading..." : "Upload Record"}
+      </Button>
+    </div>
+  );
+};
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -15,11 +192,16 @@ const PatientDashboard = () => {
   const [userData, setUserData] = useState<any>(null);
   const [medicalHistory, setMedicalHistory] = useState<any[]>([]);
   const [authorizedDoctors, setAuthorizedDoctors] = useState<any[]>([]);
+  const [accessRequests, setAccessRequests] = useState<any[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
   
   useEffect(() => {
     // Check if user is logged in
-    const userType = sessionStorage.getItem("userType");
-    const storedUserData = sessionStorage.getItem("userData");
+    const userType = localStorage.getItem("userType");
+    const storedUserData = localStorage.getItem("userData");
     
     if (userType !== "patient" || !storedUserData) {
       toast({
@@ -31,51 +213,160 @@ const PatientDashboard = () => {
       return;
     }
     
-    // Parse user data
-    const parsedUserData = JSON.parse(storedUserData);
-    setUserData(parsedUserData);
+    try {
+      // Parse user data
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
+      
+      // Load data for the dashboard
+      loadDashboardData(parsedUserData);
+    } catch (err) {
+      console.error("Failed to parse user data:", err);
+      toast({
+        title: "Session Error",
+        description: "There was an issue with your session. Please login again.",
+        variant: "destructive"
+      });
+      navigate("/patient/login");
+    }
     
+    // Set up interval to refresh data every 30 seconds
+    const intervalId = setInterval(() => {
+      const storedUserData = localStorage.getItem("userData");
+      if (storedUserData) {
+        try {
+          const parsedUserData = JSON.parse(storedUserData);
+          loadDashboardData(parsedUserData);
+        } catch (err) {
+          console.error("Error refreshing data:", err);
+        }
+      }
+    }, 30000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [navigate, toast]);
+  
+  useEffect(() => {
+    if (uploadComplete) {
+      // Reload data after upload
+      loadDashboardData(userData);
+      setUploadComplete(false);
+    }
+  }, [uploadComplete, userData]);
+  
+  const loadDashboardData = (patientData: any) => {
     // Fetch medical history
-    const patientHistory = mockMedicalHistoryDB.find(h => h.patientId === parsedUserData.patientId);
+    const patientHistory = mockMedicalHistoryDB.find(h => h.patientId === patientData.patientId);
     if (patientHistory) {
       setMedicalHistory(patientHistory.entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } else {
+      setMedicalHistory([]);
     }
     
     // Fetch authorized doctors
-    const authDoctors = parsedUserData.authorizedDoctors || [];
+    const authDoctors = patientData.authorizedDoctors || [];
     const doctorDetails = authDoctors.map((doctorId: string) => {
       return mockDoctorDB.find(d => d.doctorId === doctorId);
     }).filter(Boolean);
     
     setAuthorizedDoctors(doctorDetails);
-  }, [navigate, toast]);
+    
+    // Fetch access requests
+    const requests = getAccessRequests(patientData.patientId);
+    setAccessRequests(requests);
+  };
   
   const handleRevokeAccess = (doctorId: string) => {
+    // Find the doctor to show the name in the confirmation
+    const doctor = mockDoctorDB.find(d => d.doctorId === doctorId);
+    if (!doctor) return;
+    
+    // Show confirmation dialog
+    setSelectedRequest({ doctorId, doctorName: doctor.name });
+    setShowAlertDialog(true);
+  };
+  
+  const confirmRevokeAccess = () => {
+    if (!selectedRequest || !userData) return;
+    
     // Filter out the doctor from authorized doctors
-    const updatedAuthDoctors = authorizedDoctors.filter(d => d.doctorId !== doctorId);
-    setAuthorizedDoctors(updatedAuthDoctors);
+    const updatedAuthDoctors = (userData.authorizedDoctors || []).filter(
+      (id: string) => id !== selectedRequest.doctorId
+    );
     
     // Update user data
     const updatedUserData = {
       ...userData,
-      authorizedDoctors: updatedAuthDoctors.map(d => d.doctorId)
+      authorizedDoctors: updatedAuthDoctors
     };
+    
     setUserData(updatedUserData);
-    sessionStorage.setItem("userData", JSON.stringify(updatedUserData));
+    localStorage.setItem("userData", JSON.stringify(updatedUserData));
+    
+    // Update mock database
+    const patientIndex = mockPatientDB.findIndex(p => p.patientId === userData.patientId);
+    if (patientIndex !== -1) {
+      mockPatientDB[patientIndex].authorizedDoctors = updatedAuthDoctors;
+      persistMockDatabases();
+    }
+    
+    // Refresh doctor list
+    setAuthorizedDoctors(prev => prev.filter(d => d.doctorId !== selectedRequest.doctorId));
+    
+    // Close dialog and show toast
+    setShowAlertDialog(false);
+    setSelectedRequest(null);
     
     toast({
       title: "Access Revoked",
-      description: `Doctor access has been revoked successfully`,
+      description: `Dr. ${selectedRequest.doctorName}'s access has been revoked successfully`,
+    });
+  };
+  
+  const handleApproveRequest = (request: any) => {
+    // Find the doctor
+    const doctor = mockDoctorDB.find(d => d.doctorId === request.doctorId);
+    if (!doctor) return;
+    
+    // Update request status
+    updateAccessRequest(request.id, "approved");
+    
+    // Refresh data
+    loadDashboardData(userData);
+    
+    toast({
+      title: "Access Approved",
+      description: `Dr. ${doctor.name} can now access your medical records`,
+    });
+  };
+  
+  const handleRejectRequest = (request: any) => {
+    // Find the doctor
+    const doctor = mockDoctorDB.find(d => d.doctorId === request.doctorId);
+    if (!doctor) return;
+    
+    // Update request status
+    updateAccessRequest(request.id, "rejected");
+    
+    // Refresh data
+    loadDashboardData(userData);
+    
+    toast({
+      title: "Access Rejected",
+      description: `Access request from Dr. ${doctor.name} has been rejected`,
     });
   };
   
   const handleLogout = () => {
-    sessionStorage.removeItem("userType");
-    sessionStorage.removeItem("userData");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("userData");
+    
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully",
     });
+    
     navigate("/");
   };
 
@@ -96,6 +387,7 @@ const PatientDashboard = () => {
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="doctors">Doctor Access</TabsTrigger>
             <TabsTrigger value="history">Medical History</TabsTrigger>
+            <TabsTrigger value="requests">Access Requests</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
@@ -178,31 +470,40 @@ const PatientDashboard = () => {
           
           <TabsContent value="history">
             <Card>
-              <CardHeader>
-                <CardTitle>Medical History Timeline</CardTitle>
-                <CardDescription>View your complete medical history in chronological order</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Medical History Timeline</CardTitle>
+                  <CardDescription>View your complete medical history in chronological order</CardDescription>
+                </div>
+                <Button onClick={() => setShowUploadDialog(true)}>
+                  <Upload className="h-4 w-4 mr-2" /> Upload
+                </Button>
               </CardHeader>
               <CardContent>
                 {medicalHistory.length > 0 ? (
                   <div className="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-6 before:w-[2px] before:bg-gray-200">
                     {medicalHistory.map((entry) => (
                       <div key={entry.id} className="relative pl-14">
-                        <div className="absolute left-5 w-4 h-4 bg-medical-primary rounded-full transform -translate-x-1/2 mt-1 z-10"></div>
+                        <div className="absolute left-5 w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 mt-1 z-10"></div>
                         <div className="mb-1 flex items-center">
                           <p className="font-medium">{new Date(entry.date).toLocaleDateString()}</p>
-                          <span className="mx-2 text-gray-400">•</span>
-                          <p className="text-gray-500">{entry.doctorName}</p>
+                          {entry.doctorName && (
+                            <>
+                              <span className="mx-2 text-gray-400">•</span>
+                              <p className="text-gray-500">{entry.doctorName}</p>
+                            </>
+                          )}
                         </div>
                         <div className="p-4 bg-gray-50 rounded-md">
                           <p className="mb-3">{entry.notes}</p>
-                          {entry.documents.length > 0 && (
+                          {entry.documents && entry.documents.length > 0 && (
                             <div className="mt-2">
                               <p className="text-sm font-medium mb-2">Documents:</p>
                               <div className="flex flex-wrap gap-2">
                                 {entry.documents.map((doc: any, idx: number) => (
                                   <Button key={idx} variant="outline" size="sm" asChild>
-                                    <a href={doc.url}>
-                                      {doc.name}
+                                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                      <FileText className="h-4 w-4 mr-1" /> {doc.name}
                                     </a>
                                   </Button>
                                 ))}
@@ -221,7 +522,107 @@ const PatientDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          <TabsContent value="requests">
+            <Card>
+              <CardHeader>
+                <CardTitle>Doctor Access Requests</CardTitle>
+                <CardDescription>Approve or deny doctor access to your medical records</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {accessRequests.length > 0 ? (
+                  <div className="space-y-4">
+                    {accessRequests.map((request: any) => {
+                      const doctor = mockDoctorDB.find(d => d.doctorId === request.doctorId);
+                      return (
+                        <div key={request.id} className="p-4 border rounded-md">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{doctor?.name || "Unknown Doctor"}</h3>
+                              <p className="text-sm text-gray-500">{doctor?.specialization}, {doctor?.hospitalAffiliation}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                <Clock className="h-3 w-3 inline mr-1" />
+                                Requested: {new Date(request.requestDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
+                                onClick={() => handleApproveRequest(request)}
+                              >
+                                <Check className="h-4 w-4 mr-1" /> Approve
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                                onClick={() => handleRejectRequest(request)}
+                              >
+                                <X className="h-4 w-4 mr-1" /> Reject
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No pending access requests.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+        
+        {/* Revoke Access Confirmation Dialog */}
+        <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Access Revocation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to revoke Dr. {selectedRequest?.doctorName}'s access to your medical records? 
+                They will no longer be able to view your history or add new records.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-red-600 text-white hover:bg-red-700"
+                onClick={confirmRevokeAccess}
+              >
+                Revoke Access
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* Upload Medical Record Dialog */}
+        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload Medical Record</DialogTitle>
+              <DialogDescription>
+                Add a new file to your medical history
+              </DialogDescription>
+            </DialogHeader>
+            <FileUploader 
+              patientId={userData.patientId} 
+              onUploadComplete={() => {
+                setShowUploadDialog(false);
+                setUploadComplete(true);
+              }} 
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

@@ -94,6 +94,30 @@ export const mockMedicalHistoryDB = [
   }
 ];
 
+// Mock access requests database
+export const mockAccessRequestsDB = [];
+
+// Mock patient files database
+export const mockPatientFilesDB = [
+  {
+    patientId: "PAT103245",
+    files: [
+      {
+        name: "prescription1.pdf",
+        type: "pdf",
+        date: "2023-10-15",
+        url: "#"
+      },
+      {
+        name: "bloodtest1.pdf",
+        type: "pdf",
+        date: "2023-09-02",
+        url: "#"
+      }
+    ]
+  }
+];
+
 // Generate unique IDs
 export const generatePatientId = (): string => {
   return `PAT${Math.floor(100000 + Math.random() * 900000)}`;
@@ -169,3 +193,128 @@ export const addNewAadhaarToMockDB = (aadhaarId: string) => {
   
   return newUserData;
 };
+
+// Helper function to save data to localStorage
+export const saveToLocalStorage = (key: string, data: any) => {
+  localStorage.setItem(key, JSON.stringify(data));
+};
+
+// Helper function to load data from localStorage
+export const loadFromLocalStorage = (key: string, defaultValue: any = null) => {
+  const storedData = localStorage.getItem(key);
+  if (storedData) {
+    try {
+      return JSON.parse(storedData);
+    } catch (error) {
+      console.error(`Error parsing data for key ${key}:`, error);
+      return defaultValue;
+    }
+  }
+  return defaultValue;
+};
+
+// Initialize mock databases from localStorage or use defaults
+export const initMockDatabases = () => {
+  // Initialize Aadhaar DB
+  const storedAadhaarDB = loadFromLocalStorage('aadhaarDB', mockAadhaarDB);
+  mockAadhaarDB.length = 0;
+  mockAadhaarDB.push(...storedAadhaarDB);
+  
+  // Initialize Patient DB
+  const storedPatientDB = loadFromLocalStorage('patientDB', mockPatientDB);
+  mockPatientDB.length = 0;
+  mockPatientDB.push(...storedPatientDB);
+  
+  // Initialize Doctor DB
+  const storedDoctorDB = loadFromLocalStorage('doctorDB', mockDoctorDB);
+  mockDoctorDB.length = 0;
+  mockDoctorDB.push(...storedDoctorDB);
+  
+  // Initialize Medical History DB
+  const storedMedicalHistoryDB = loadFromLocalStorage('medicalHistoryDB', mockMedicalHistoryDB);
+  mockMedicalHistoryDB.length = 0;
+  mockMedicalHistoryDB.push(...storedMedicalHistoryDB);
+  
+  // Initialize Access Requests DB
+  const storedAccessRequestsDB = loadFromLocalStorage('accessRequestsDB', []);
+  mockAccessRequestsDB.length = 0;
+  (mockAccessRequestsDB as any).push(...storedAccessRequestsDB);
+  
+  // Initialize Patient Files DB
+  const storedPatientFilesDB = loadFromLocalStorage('patientFilesDB', mockPatientFilesDB);
+  mockPatientFilesDB.length = 0;
+  mockPatientFilesDB.push(...storedPatientFilesDB);
+  
+  // Save initial state to localStorage
+  persistMockDatabases();
+};
+
+// Persist mock databases to localStorage
+export const persistMockDatabases = () => {
+  saveToLocalStorage('aadhaarDB', mockAadhaarDB);
+  saveToLocalStorage('patientDB', mockPatientDB);
+  saveToLocalStorage('doctorDB', mockDoctorDB);
+  saveToLocalStorage('medicalHistoryDB', mockMedicalHistoryDB);
+  saveToLocalStorage('accessRequestsDB', mockAccessRequestsDB);
+  saveToLocalStorage('patientFilesDB', mockPatientFilesDB);
+};
+
+// Patient-Doctor access request functions
+export const createAccessRequest = (doctorId: string, patientId: string) => {
+  const request = {
+    id: `REQ${Math.floor(100000 + Math.random() * 900000)}`,
+    doctorId,
+    patientId,
+    status: "pending",
+    requestDate: new Date().toISOString()
+  };
+  
+  (mockAccessRequestsDB as any).push(request);
+  persistMockDatabases();
+  return request;
+};
+
+export const updateAccessRequest = (requestId: string, status: "approved" | "rejected") => {
+  const requestIndex = (mockAccessRequestsDB as any).findIndex((req: any) => req.id === requestId);
+  if (requestIndex === -1) return false;
+  
+  (mockAccessRequestsDB as any)[requestIndex].status = status;
+  (mockAccessRequestsDB as any)[requestIndex].responseDate = new Date().toISOString();
+  
+  if (status === "approved") {
+    const request = (mockAccessRequestsDB as any)[requestIndex];
+    const patientIndex = mockPatientDB.findIndex(p => p.patientId === request.patientId);
+    
+    if (patientIndex !== -1) {
+      const patient = mockPatientDB[patientIndex];
+      if (!patient.authorizedDoctors) {
+        patient.authorizedDoctors = [];
+      }
+      
+      if (!patient.authorizedDoctors.includes(request.doctorId)) {
+        patient.authorizedDoctors.push(request.doctorId);
+      }
+    }
+  }
+  
+  persistMockDatabases();
+  return true;
+};
+
+export const getAccessRequests = (patientId: string) => {
+  return (mockAccessRequestsDB as any).filter((req: any) => req.patientId === patientId && req.status === "pending");
+};
+
+export const getPatientsByDoctor = (doctorId: string) => {
+  const accessApproved = mockPatientDB.filter(patient => 
+    patient.authorizedDoctors && patient.authorizedDoctors.includes(doctorId)
+  );
+  
+  return accessApproved;
+};
+
+// Call initialize on page load
+if (typeof window !== 'undefined') {
+  // Initialize mock databases from localStorage or use defaults
+  initMockDatabases();
+}
