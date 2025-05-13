@@ -1,4 +1,5 @@
 
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,7 +21,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   // Check local storage and initialize if needed
-  React.useEffect(() => {
+  useEffect(() => {
     const initializeApp = async () => {
       // This ensures our mock databases are loaded from localStorage on app start
       if (typeof window !== 'undefined' && window.localStorage) {
