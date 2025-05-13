@@ -1,18 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database } from "@/integrations/supabase/types";
-
-type Doctor = Database["public"]["Tables"]["doctors"]["Row"] & {
-  name: string;
-  email: string;
-};
-
-type Patient = Database["public"]["Tables"]["patients"]["Row"] & {
-  name: string;
-  authorizedDoctors?: string[];
-};
+import { Button } from "@/components/ui/button";
+import { mockPatientDB } from "@/utils/mockDatabase";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PatientListProps {
   patientIdentifier: string;
@@ -25,6 +17,46 @@ const PatientList: React.FC<PatientListProps> = ({
   setPatientIdentifier,
   handleRequestAccess
 }) => {
+  const { toast } = useToast();
+  const [searchType, setSearchType] = useState<'patientId' | 'aadhaarId'>('patientId');
+
+  const validateAndSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Log the current mock database for debugging
+    console.log("Current mockPatientDB:", mockPatientDB);
+    
+    if (!patientIdentifier.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter a patient identifier to search",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if we can find the patient in the mockPatientDB
+    let patientExists = false;
+    
+    if (searchType === 'patientId') {
+      patientExists = mockPatientDB.some(patient => patient.patientId === patientIdentifier);
+    } else {
+      patientExists = mockPatientDB.some(patient => patient.aadhaarId === patientIdentifier);
+    }
+
+    if (!patientExists) {
+      toast({
+        title: "Patient Not Found",
+        description: `No patient found with the provided ${searchType === 'patientId' ? 'Patient ID' : 'Aadhaar ID'}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // If patient exists, proceed with the access request
+    handleRequestAccess(e);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -32,28 +64,46 @@ const PatientList: React.FC<PatientListProps> = ({
         <CardDescription>Access patient records with their permission</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleRequestAccess}>
+        <form onSubmit={validateAndSearch}>
           <div className="grid gap-4">
+            <div className="flex gap-2 mb-2">
+              <Button 
+                type="button" 
+                variant={searchType === 'patientId' ? "default" : "outline"} 
+                onClick={() => setSearchType('patientId')}
+              >
+                Patient ID
+              </Button>
+              <Button 
+                type="button" 
+                variant={searchType === 'aadhaarId' ? "default" : "outline"} 
+                onClick={() => setSearchType('aadhaarId')}
+              >
+                Aadhaar ID
+              </Button>
+            </div>
+            
             <div className="grid gap-2">
               <label htmlFor="patientId" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Patient Aadhaar Number
+                {searchType === 'patientId' ? 'Patient ID' : 'Aadhaar Number'}
               </label>
               <Input 
                 id="patientId"
                 type="text" 
-                placeholder="Enter Aadhaar number (e.g., 123456789012)" 
+                placeholder={searchType === 'patientId' ? "Enter Patient ID (e.g., PAT103245)" : "Enter Aadhaar number (e.g., 123456789012)"}
                 value={patientIdentifier}
                 onChange={(e) => setPatientIdentifier(e.target.value)}
                 required
               />
-              <p className="text-sm text-gray-500">Enter the patient's 12-digit Aadhaar number</p>
+              <p className="text-sm text-gray-500">
+                {searchType === 'patientId' 
+                  ? "Enter the patient's ID number (starts with PAT)" 
+                  : "Enter the patient's 12-digit Aadhaar number"}
+              </p>
             </div>
-            <button 
-              type="submit" 
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-            >
-              Request Access
-            </button>
+            <Button type="submit" className="w-full">
+              Search Patient
+            </Button>
           </div>
         </form>
       </CardContent>

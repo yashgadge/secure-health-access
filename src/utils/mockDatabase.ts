@@ -1,4 +1,3 @@
-
 // Mock Aadhaar database
 export const mockAadhaarDB = [
   {
@@ -199,39 +198,51 @@ export const addNewAadhaarToMockDB = (aadhaarId: string) => {
 
 // Helper function to save data to localStorage
 export const saveToLocalStorage = (key: string, data: any) => {
-  localStorage.setItem(key, JSON.stringify(data));
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`Saved to localStorage: ${key}`, data);
+  } catch (error) {
+    console.error(`Error saving data for key ${key}:`, error);
+  }
 };
 
 // Helper function to load data from localStorage
 export const loadFromLocalStorage = (key: string, defaultValue: any = null) => {
-  const storedData = localStorage.getItem(key);
-  if (storedData) {
-    try {
-      return JSON.parse(storedData);
-    } catch (error) {
-      console.error(`Error parsing data for key ${key}:`, error);
-      return defaultValue;
+  try {
+    const storedData = localStorage.getItem(key);
+    if (storedData) {
+      const parsed = JSON.parse(storedData);
+      console.log(`Loaded from localStorage: ${key}`, parsed);
+      return parsed;
     }
+  } catch (error) {
+    console.error(`Error parsing data for key ${key}:`, error);
   }
+  console.log(`Using default value for ${key}:`, defaultValue);
   return defaultValue;
 };
 
 // Initialize mock databases from localStorage or use defaults
 export const initMockDatabases = () => {
+  console.log("Initializing mock databases...");
+  
   // Initialize Aadhaar DB
   const storedAadhaarDB = loadFromLocalStorage('aadhaarDB', mockAadhaarDB);
   mockAadhaarDB.length = 0;
   mockAadhaarDB.push(...storedAadhaarDB);
+  console.log("Loaded Aadhaar DB:", mockAadhaarDB);
   
   // Initialize Patient DB
   const storedPatientDB = loadFromLocalStorage('patientDB', mockPatientDB);
   mockPatientDB.length = 0;
   mockPatientDB.push(...storedPatientDB);
+  console.log("Loaded Patient DB:", mockPatientDB);
   
   // Initialize Doctor DB
   const storedDoctorDB = loadFromLocalStorage('doctorDB', mockDoctorDB);
   mockDoctorDB.length = 0;
   mockDoctorDB.push(...storedDoctorDB);
+  console.log("Loaded Doctor DB:", mockDoctorDB);
   
   // Initialize Medical History DB
   const storedMedicalHistoryDB = loadFromLocalStorage('medicalHistoryDB', mockMedicalHistoryDB);
@@ -358,6 +369,6 @@ export const exportDataToCSV = (dataType: 'patients' | 'doctors') => {
 
 // Call initialize on page load
 if (typeof window !== 'undefined') {
-  // Initialize mock databases from localStorage or use defaults
-  initMockDatabases();
+  // We'll call this in App.tsx useEffect instead to ensure it's loaded at the right time
+  // initMockDatabases();
 }

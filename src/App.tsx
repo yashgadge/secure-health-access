@@ -12,22 +12,16 @@ import PatientHistory from "./pages/doctor/PatientHistory";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import { initMockDatabases } from './utils/mockDatabase';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   // Check local storage and initialize if needed
   useEffect(() => {
-    const initializeApp = async () => {
-      // This ensures our mock databases are loaded from localStorage on app start
-      if (typeof window !== 'undefined' && window.localStorage) {
-        // Import here to avoid SSR issues
-        const { initMockDatabases } = await import('./utils/mockDatabase');
-        initMockDatabases();
-      }
-    };
-
-    initializeApp();
+    console.log("App mounted - initializing databases");
+    // Initialize mock databases on app load to ensure data is available
+    initMockDatabases();
   }, []);
 
   return (
