@@ -21,6 +21,10 @@ const PatientLogin = () => {
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("Attempting to send OTP for:", identifier);
+    console.log("Available patients:", mockPatientDB);
+    console.log("Available Aadhaar records:", mockAadhaarDB);
+    
     let isValid = false;
     let userData = null;
     
@@ -38,6 +42,17 @@ const PatientLogin = () => {
       // Check if Aadhaar ID exists
       userData = mockAadhaarDB.find(p => p.aadhaarId === identifier);
       isValid = !!userData;
+      
+      // Verify patient registration
+      const patientExists = mockPatientDB.some(p => p.aadhaarId === identifier);
+      if (userData && !patientExists) {
+        toast({
+          title: "Registration Required",
+          description: "Your Aadhaar is valid but you need to register as a patient first",
+          variant: "destructive"
+        });
+        return;
+      }
     } else {
       // Validate Patient ID
       if (!identifier.startsWith("PAT") || identifier.length !== 9) {
@@ -99,9 +114,9 @@ const PatientLogin = () => {
     }
     
     if (userData) {
-      // Store patient data in session storage
-      sessionStorage.setItem("userType", "patient");
-      sessionStorage.setItem("userData", JSON.stringify(userData));
+      // Store patient data in localStorage for persistence
+      localStorage.setItem("userType", "patient");
+      localStorage.setItem("userData", JSON.stringify(userData));
       
       toast({
         title: "Login Successful",

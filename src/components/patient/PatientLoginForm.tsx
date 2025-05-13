@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 // Import mock data
 import { mockAadhaarDB, mockPatientDB } from '@/utils/mockDatabase';
@@ -30,6 +30,10 @@ const PatientLoginForm = () => {
         });
         return;
       }
+      
+      console.log("Attempting login with Aadhaar:", aadhaarId);
+      console.log("Available Aadhaar records:", mockAadhaarDB);
+      console.log("Available patients:", mockPatientDB);
       
       // Check if Aadhaar ID exists in mock DB
       const aadhaarUser = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);

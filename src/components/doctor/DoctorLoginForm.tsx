@@ -19,6 +19,9 @@ const DoctorLoginForm = () => {
   const handleDoctorLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("Attempting login with:", doctorEmail);
+    console.log("Available doctors:", mockDoctorDB);
+    
     // Validate doctor credentials
     const doctor = mockDoctorDB.find(
       d => d.email === doctorEmail && d.password === doctorPassword
@@ -49,9 +52,9 @@ const DoctorLoginForm = () => {
     localStorage.setItem("userData", JSON.stringify(doctor));
     toast({
       title: "Login Successful",
-      description: `Welcome, ${doctor.name}!`,
+      description: `Welcome, Dr. ${doctor.name}!`,
     });
-    navigate("/doctor-dashboard");
+    navigate("/doctor/dashboard");
   };
 
   return (
@@ -59,7 +62,7 @@ const DoctorLoginForm = () => {
       <CardHeader>
         <CardTitle className="text-2xl">Doctor Login</CardTitle>
         <CardDescription>
-          Sign in to access your patient records and management system
+          Access your medical dashboard securely
         </CardDescription>
       </CardHeader>
       <CardContent>
