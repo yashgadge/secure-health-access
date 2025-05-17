@@ -40,8 +40,10 @@ const PatientList: React.FC<PatientListProps> = ({
     
     if (searchType === 'patientId') {
       patientExists = mockPatientDB.some(patient => patient.patientId === patientIdentifier);
+      console.log("Searching by patientId:", patientIdentifier, "Found:", patientExists);
     } else {
       patientExists = mockPatientDB.some(patient => patient.aadhaarId === patientIdentifier);
+      console.log("Searching by aadhaarId:", patientIdentifier, "Found:", patientExists);
     }
 
     if (!patientExists) {

@@ -12,6 +12,10 @@ import PatientHistory from "./pages/doctor/PatientHistory";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import PatientLogin from "./pages/patient/Login";
+import PatientRegister from "./pages/patient/Register";
+import DoctorLogin from "./pages/doctor/Login";
+import DoctorRegister from "./pages/doctor/Register";
 import { initMockDatabases } from './utils/mockDatabase';
 
 const queryClient = new QueryClient();
@@ -33,6 +37,10 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/patient/login" element={<PatientLogin />} />
+            <Route path="/patient/register" element={<PatientRegister />} />
+            <Route path="/doctor/login" element={<DoctorLogin />} />
+            <Route path="/doctor/register" element={<DoctorRegister />} />
             <Route path="/patient-dashboard" element={<PatientDashboard />} />
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
             <Route path="/doctor/patient-history" element={<PatientHistory />} />

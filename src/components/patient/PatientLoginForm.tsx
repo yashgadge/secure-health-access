@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 
 // Import mock data
-import { mockAadhaarDB, mockPatientDB, generatePatientId, addNewAadhaarToMockDB, persistMockDatabases } from '@/utils/mockDatabase';
+import { mockAadhaarDB, mockPatientDB } from '@/utils/mockDatabase';
 
 const PatientLoginForm = () => {
   const navigate = useNavigate();
@@ -18,11 +18,6 @@ const PatientLoginForm = () => {
   const [aadhaarId, setAadhaarId] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  
-  // Registration states
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-  const [patientId, setPatientId] = useState("");
 
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,36 +38,31 @@ const PatientLoginForm = () => {
     
     // Check if patient exists with this Aadhaar ID
     const patientExists = mockPatientDB.some(p => p.aadhaarId === aadhaarId);
-    
-    // Check if Aadhaar ID exists in mock DB, if not, add it
-    let user = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
-    if (!user) {
-      // Add new Aadhaar with generated mock data
-      user = addNewAadhaarToMockDB(aadhaarId);
-      
+    if (!patientExists) {
       toast({
-        title: "New Aadhaar ID Registered",
-        description: "We've created a profile for your new Aadhaar ID",
+        title: "Patient not found",
+        description: "No patient found with this Aadhaar ID. Please register first.",
+        variant: "destructive"
       });
+      return;
     }
     
-    // Set user data from Aadhaar
-    setUserData(user);
-    
-    if (!patientExists) {
-      // New patient - show registration flow
-      setIsNewUser(true);
-      
-      // Auto-generate Patient ID
-      const newPatientId = generatePatientId();
-      setPatientId(newPatientId);
+    // Find Aadhaar data
+    const userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+    if (!userData) {
+      toast({
+        title: "Aadhaar ID not found",
+        description: "This Aadhaar ID is not registered in our system",
+        variant: "destructive"
+      });
+      return;
     }
     
     // Mock OTP sending
     setOtpSent(true);
     toast({
       title: "OTP Sent",
-      description: `A mock OTP has been sent to ${user.phone.substring(0, 2)}****${user.phone.substring(6)}`,
+      description: `A mock OTP has been sent to ${userData.phone.substring(0, 2)}****${userData.phone.substring(6)}`,
     });
   };
 
@@ -89,55 +79,26 @@ const PatientLoginForm = () => {
       return;
     }
     
-    if (isNewUser) {
-      // Registration for new patient
-      // Create new patient record
-      const newPatient = {
-        aadhaarId,
-        patientId,
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        authorizedDoctors: []
-      };
-      
-      // Add to mock DB
-      mockPatientDB.push(newPatient);
-      persistMockDatabases(); // Save to localStorage
-      
-      // Store patient data in localStorage
+    // Find patient data
+    const patient = mockPatientDB.find(p => p.aadhaarId === aadhaarId);
+    
+    if (patient) {
+      // Store patient data in localStorage for persistence
       localStorage.setItem("userType", "patient");
-      localStorage.setItem("userData", JSON.stringify(newPatient));
+      localStorage.setItem("userData", JSON.stringify(patient));
       
       toast({
-        title: "Registration Successful",
-        description: `Welcome, ${userData.name}! Your Patient ID is ${patientId}`,
+        title: "Login Successful",
+        description: `Welcome back, ${patient.name}!`,
       });
       
       navigate("/patient-dashboard");
     } else {
-      // Login for existing patient
-      const patient = mockPatientDB.find(p => p.aadhaarId === aadhaarId);
-      
-      if (patient) {
-        // Store patient data in localStorage for persistence
-        localStorage.setItem("userType", "patient");
-        localStorage.setItem("userData", JSON.stringify(patient));
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${patient.name}!`,
-        });
-        
-        navigate("/patient-dashboard");
-      } else {
-        // This should not happen given our earlier checks
-        toast({
-          title: "Login Failed",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Login Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -175,25 +136,6 @@ const PatientLoginForm = () => {
         ) : (
           <form onSubmit={handleVerifyOTP}>
             <div className="grid gap-6">
-              {isNewUser && (
-                <>
-                  {/* Display auto-filled details for new users */}
-                  <div className="grid gap-4 p-4 bg-gray-50 rounded-md">
-                    <h3 className="font-medium">Auto-filled Details from Aadhaar</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-gray-500">Name:</div>
-                      <div className="font-medium">{userData?.name}</div>
-                      <div className="text-gray-500">Email:</div>
-                      <div className="font-medium">{userData?.email}</div>
-                      <div className="text-gray-500">Phone:</div>
-                      <div className="font-medium">{userData?.phone}</div>
-                      <div className="text-gray-500">Patient ID:</div>
-                      <div className="font-medium">{patientId}</div>
-                    </div>
-                  </div>
-                </>
-              )}
-              
               <div className="grid gap-2">
                 <Label htmlFor="otp">One-Time Password</Label>
                 <Input 
@@ -210,13 +152,19 @@ const PatientLoginForm = () => {
                 </p>
               </div>
               
-              <Button type="submit" className="w-full">
-                {isNewUser ? "Complete Registration" : "Verify OTP"}
-              </Button>
+              <Button type="submit" className="w-full">Verify OTP</Button>
             </div>
           </form>
         )}
       </CardContent>
+      <CardFooter className="flex justify-center">
+        <p className="text-sm text-gray-500">
+          Don't have an account?{" "}
+          <Link to="/patient/register" className="text-blue-600 hover:underline">
+            Register here
+          </Link>
+        </p>
+      </CardFooter>
     </Card>
   );
 };

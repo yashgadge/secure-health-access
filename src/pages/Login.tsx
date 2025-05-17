@@ -1,28 +1,59 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageLayout from '@/components/PageLayout';
-import PatientLoginForm from '@/components/patient/PatientLoginForm';
-import DoctorLoginForm from '@/components/doctor/DoctorLoginForm';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  const handlePatientLogin = () => {
+    navigate('/patient/login');
+  };
+
+  const handleDoctorLogin = () => {
+    navigate('/doctor/login');
+  };
+
   return (
     <PageLayout>
       <div className="flex-1 flex items-center justify-center p-6">
-        <Tabs defaultValue="patient" className="w-full max-w-md">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="patient">Patient Login</TabsTrigger>
-            <TabsTrigger value="doctor">Doctor Login</TabsTrigger>
-          </TabsList>
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Medical Records System</CardTitle>
+            <CardDescription>
+              Login to access the health records management system
+            </CardDescription>
+          </CardHeader>
           
-          <TabsContent value="patient">
-            <PatientLoginForm />
-          </TabsContent>
+          <CardContent className="flex flex-col gap-4">
+            <Button 
+              variant="default" 
+              size="lg" 
+              className="w-full"
+              onClick={handlePatientLogin}
+            >
+              Patient Login
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full"
+              onClick={handleDoctorLogin}
+            >
+              Doctor Login
+            </Button>
+          </CardContent>
           
-          <TabsContent value="doctor">
-            <DoctorLoginForm />
-          </TabsContent>
-        </Tabs>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-gray-500">
+              Choose your role to proceed to the appropriate login screen
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </PageLayout>
   );
