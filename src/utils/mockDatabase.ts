@@ -56,7 +56,7 @@ export const mockPatientDB = [
     email: "rahul.sharma@example.com",
     phone: "9876543210",
     address: "123 Main Street, Mumbai, Maharashtra",
-    authorizedDoctors: ["DOC987654", "DOC765432"]
+    authorizedDoctors: ["DOC987654", "DOC765432", "DOC654321"] // Added more authorized doctors for demo
   },
   {
     aadhaarId: "234567890123",
@@ -106,6 +106,24 @@ export const mockDoctorDB = [
     name: "Dr. Rohit Kumar",
     specialization: "Pediatrician",
     hospitalAffiliation: "Children's Hospital"
+  },
+  {
+    aadhaarId: "789012345678",
+    doctorId: "DOC543210",
+    email: "priya.verma@example.com",
+    password: "password321",
+    name: "Dr. Priya Verma",
+    specialization: "Dermatologist",
+    hospitalAffiliation: "Skin & Care Hospital"
+  },
+  {
+    aadhaarId: "890123456789",
+    doctorId: "DOC432109",
+    email: "sunil.mehta@example.com",
+    password: "password654",
+    name: "Dr. Sunil Mehta",
+    specialization: "Orthopedic Surgeon",
+    hospitalAffiliation: "Joint & Bone Medical Center"
   }
 ];
 
@@ -172,6 +190,40 @@ export const mockMedicalHistoryDB = [
             url: "#"
           }
         ]
+      },
+      {
+        id: "MH005",
+        date: "2024-05-08", 
+        doctorId: "DOC654321",
+        doctorName: "Dr. Rohit Kumar",
+        notes: "Patient visited for flu symptoms. Prescribed antibiotics and rest for 5 days. Follow up if symptoms persist.",
+        documents: [
+          {
+            name: "FluPrescription.pdf",
+            url: "#"
+          },
+          {
+            name: "MedicationInstructions.pdf",
+            url: "#"
+          }
+        ]
+      },
+      {
+        id: "MH006",
+        date: "2024-05-17",
+        doctorId: "DOC987654",
+        doctorName: "Dr. Anjali Desai",
+        notes: "Patient complained of occasional chest pain after exercise. ECG conducted and no abnormalities found. Recommended cardiac stress test as precautionary measure.",
+        documents: [
+          {
+            name: "ECGReport.pdf",
+            url: "#"
+          },
+          {
+            name: "CardiacTestReferral.pdf",
+            url: "#"
+          }
+        ]
       }
     ]
   },
@@ -233,8 +285,22 @@ export const mockAccessRequestsDB = [
     id: "REQ234567",
     doctorId: "DOC765432",
     patientId: "PAT305467",
-    status: "pending",
+    status: "pending", 
     requestDate: "2024-05-16T14:45:00Z"
+  },
+  {
+    id: "REQ345678",
+    doctorId: "DOC543210",
+    patientId: "PAT103245",
+    status: "pending",
+    requestDate: "2024-05-16T09:15:00Z"
+  },
+  {
+    id: "REQ456789",
+    doctorId: "DOC432109",
+    patientId: "PAT103245",
+    status: "pending",
+    requestDate: "2024-05-17T11:20:00Z"
   }
 ];
 
