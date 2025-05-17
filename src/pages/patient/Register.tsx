@@ -108,6 +108,7 @@ const PatientRegister = () => {
       name: userData.name,
       email: userData.email,
       phone: userData.phone,
+      address: userData.address, // Add the address property from userData
       authorizedDoctors: []
     };
     
