@@ -26,6 +26,24 @@ export const mockAadhaarDB = [
     address: "789 Hospital Road, Bangalore, Karnataka",
     phone: "7654321098",
     email: "doctor@example.com"
+  },
+  {
+    aadhaarId: "456789012345",
+    name: "Dr. Vikram Singh",
+    dob: "1975-09-25",
+    gender: "Male",
+    address: "234 Medical Center Drive, Chennai, Tamil Nadu",
+    phone: "6543210987",
+    email: "vikram.singh@example.com"
+  },
+  {
+    aadhaarId: "567890123456",
+    name: "Neha Gupta",
+    dob: "1992-12-08",
+    gender: "Female",
+    address: "567 Lake View, Kolkata, West Bengal",
+    phone: "5432109876",
+    email: "neha.gupta@example.com"
   }
 ];
 
@@ -37,7 +55,26 @@ export const mockPatientDB = [
     name: "Rahul Sharma",
     email: "rahul.sharma@example.com",
     phone: "9876543210",
-    authorizedDoctors: ["DOC987654"]
+    address: "123 Main Street, Mumbai, Maharashtra",
+    authorizedDoctors: ["DOC987654", "DOC765432"]
+  },
+  {
+    aadhaarId: "234567890123",
+    patientId: "PAT204356",
+    name: "Priya Patel",
+    email: "priya.patel@example.com",
+    phone: "8765432109",
+    address: "456 Park Avenue, Delhi, Delhi",
+    authorizedDoctors: ["DOC654321"]
+  },
+  {
+    aadhaarId: "567890123456",
+    patientId: "PAT305467",
+    name: "Neha Gupta",
+    email: "neha.gupta@example.com",
+    phone: "5432109876",
+    address: "567 Lake View, Kolkata, West Bengal",
+    authorizedDoctors: []
   }
 ];
 
@@ -51,6 +88,24 @@ export const mockDoctorDB = [
     name: "Dr. Anjali Desai",
     specialization: "Cardiologist",
     hospitalAffiliation: "City Medical Center"
+  },
+  {
+    aadhaarId: "456789012345",
+    doctorId: "DOC765432",
+    email: "vikram.singh@example.com",
+    password: "password456",
+    name: "Dr. Vikram Singh",
+    specialization: "Neurologist",
+    hospitalAffiliation: "National Neuro Institute"
+  },
+  {
+    aadhaarId: "678901234567",
+    doctorId: "DOC654321",
+    email: "rohit.kumar@example.com",
+    password: "password789",
+    name: "Dr. Rohit Kumar",
+    specialization: "Pediatrician",
+    hospitalAffiliation: "Children's Hospital"
   }
 ];
 
@@ -88,13 +143,100 @@ export const mockMedicalHistoryDB = [
             url: "#"
           }
         ]
+      },
+      {
+        id: "MH003",
+        date: "2024-01-10",
+        doctorId: "DOC765432",
+        doctorName: "Dr. Vikram Singh",
+        notes: "Patient reported occasional headaches. Recommended stress management techniques and proper sleep hygiene.",
+        documents: [
+          {
+            name: "HeadacheDiagnosis.pdf",
+            url: "#"
+          }
+        ]
+      },
+      {
+        id: "MH004",
+        date: "2024-03-25",
+        doctorName: "Self Upload",
+        notes: "Uploaded personal health records from annual employer health checkup.",
+        documents: [
+          {
+            name: "AnnualCheckup2024.pdf",
+            url: "#"
+          },
+          {
+            name: "BloodWorkResults.pdf",
+            url: "#"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    patientId: "PAT204356",
+    entries: [
+      {
+        id: "MH005",
+        date: "2023-11-20",
+        doctorId: "DOC654321",
+        doctorName: "Dr. Rohit Kumar",
+        notes: "Patient reported seasonal allergies. Prescribed antiallergic medication for two weeks.",
+        documents: [
+          {
+            name: "AllergyPrescription.pdf",
+            url: "#"
+          }
+        ]
+      },
+      {
+        id: "MH006",
+        date: "2024-02-15",
+        doctorId: "DOC654321",
+        doctorName: "Dr. Rohit Kumar",
+        notes: "Follow-up for allergies. Symptoms have subsided. Recommended to continue medication for one more week.",
+        documents: []
+      }
+    ]
+  },
+  {
+    patientId: "PAT305467",
+    entries: [
+      {
+        id: "MH007",
+        date: "2024-04-05",
+        doctorName: "Self Upload",
+        notes: "Uploaded medical reports from routine gynecological examination.",
+        documents: [
+          {
+            name: "GynecologicalReport.pdf",
+            url: "#"
+          }
+        ]
       }
     ]
   }
 ];
 
 // Mock access requests database
-export const mockAccessRequestsDB = [];
+export const mockAccessRequestsDB = [
+  {
+    id: "REQ123456",
+    doctorId: "DOC654321",
+    patientId: "PAT103245",
+    status: "pending",
+    requestDate: "2024-05-15T10:30:00Z"
+  },
+  {
+    id: "REQ234567",
+    doctorId: "DOC765432",
+    patientId: "PAT305467",
+    status: "pending",
+    requestDate: "2024-05-16T14:45:00Z"
+  }
+];
 
 // Mock patient files database
 export const mockPatientFilesDB = [
@@ -111,6 +253,40 @@ export const mockPatientFilesDB = [
         name: "bloodtest1.pdf",
         type: "pdf",
         date: "2023-09-02",
+        url: "#"
+      },
+      {
+        name: "headache_diagnosis.pdf",
+        type: "pdf",
+        date: "2024-01-10",
+        url: "#"
+      },
+      {
+        name: "annual_checkup_2024.pdf",
+        type: "pdf",
+        date: "2024-03-25",
+        url: "#"
+      }
+    ]
+  },
+  {
+    patientId: "PAT204356",
+    files: [
+      {
+        name: "allergy_prescription.pdf",
+        type: "pdf",
+        date: "2023-11-20",
+        url: "#"
+      }
+    ]
+  },
+  {
+    patientId: "PAT305467",
+    files: [
+      {
+        name: "gynecological_report.pdf",
+        type: "pdf",
+        date: "2024-04-05",
         url: "#"
       }
     ]

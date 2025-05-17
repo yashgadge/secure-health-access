@@ -20,6 +20,7 @@ const PatientList: React.FC<PatientListProps> = ({
   const { toast } = useToast();
   const [searchType, setSearchType] = useState<'patientId' | 'aadhaarId'>('patientId');
   const [patientData, setPatientData] = useState<any[]>([]);
+  const [example, setExample] = useState<string>('');
 
   // Load patient data on component mount and whenever localStorage updates
   useEffect(() => {
@@ -38,6 +39,17 @@ const PatientList: React.FC<PatientListProps> = ({
       console.log("Using mock patient data:", mockPatientDB);
     }
   }, []);
+
+  useEffect(() => {
+    // Set an example ID based on search type
+    if (searchType === 'patientId') {
+      const examples = ['PAT103245', 'PAT204356', 'PAT305467'];
+      setExample(examples[Math.floor(Math.random() * examples.length)]);
+    } else {
+      const examples = ['123456789012', '234567890123', '567890123456'];
+      setExample(examples[Math.floor(Math.random() * examples.length)]);
+    }
+  }, [searchType]);
 
   const validateAndSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +125,7 @@ const PatientList: React.FC<PatientListProps> = ({
               <Input 
                 id="patientId"
                 type="text" 
-                placeholder={searchType === 'patientId' ? "Enter Patient ID (e.g., PAT103245)" : "Enter Aadhaar number (e.g., 123456789012)"}
+                placeholder={searchType === 'patientId' ? `Enter Patient ID (e.g., ${example})` : `Enter Aadhaar number (e.g., ${example})`}
                 value={patientIdentifier}
                 onChange={(e) => setPatientIdentifier(e.target.value)}
                 required
