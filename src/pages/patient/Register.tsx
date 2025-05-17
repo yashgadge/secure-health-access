@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { mockAadhaarDB, generatePatientId, addNewAadhaarToMockDB } from '@/utils/mockDatabase';
+import { mockAadhaarDB, generatePatientId, addNewAadhaarToMockDB, mockPatientDB, persistMockDatabases } from '@/utils/mockDatabase';
 
 const PatientRegister = () => {
   const navigate = useNavigate();
@@ -17,6 +17,21 @@ const PatientRegister = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [patientId, setPatientId] = useState("");
+
+  // Check for temp Aadhaar ID on component mount
+  useEffect(() => {
+    const tempAadhaarId = sessionStorage.getItem("tempAadhaarId");
+    if (tempAadhaarId) {
+      setAadhaarId(tempAadhaarId);
+      sessionStorage.removeItem("tempAadhaarId"); // Clear after use
+      
+      // Automatically trigger verification if Aadhaar ID was provided
+      if (tempAadhaarId.length === 12) {
+        const event = new Event('submit') as unknown as React.FormEvent;
+        handleVerifyAadhaar(event);
+      }
+    }
+  }, []);
 
   const handleVerifyAadhaar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +43,21 @@ const PatientRegister = () => {
         description: "Please enter a valid 12-digit Aadhaar ID",
         variant: "destructive"
       });
+      return;
+    }
+    
+    // Check if a patient already exists with this Aadhaar ID
+    const existingPatient = mockPatientDB.find(p => p.aadhaarId === aadhaarId);
+    if (existingPatient) {
+      toast({
+        title: "Patient Already Exists",
+        description: "An account with this Aadhaar ID already exists. Please login instead.",
+        variant: "destructive"
+      });
+      
+      setTimeout(() => {
+        navigate("/patient/login");
+      }, 1000);
       return;
     }
     
@@ -71,15 +101,19 @@ const PatientRegister = () => {
       return;
     }
     
-    // Store patient data in session storage
+    // Create new patient record
     const patientData = {
-      ...userData,
+      aadhaarId,
       patientId,
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
       authorizedDoctors: []
     };
     
-    sessionStorage.setItem("userType", "patient");
-    sessionStorage.setItem("userData", JSON.stringify(patientData));
+    // Add to mock database
+    mockPatientDB.push(patientData);
+    persistMockDatabases();
     
     toast({
       title: "Registration Successful",
@@ -87,7 +121,9 @@ const PatientRegister = () => {
     });
     
     // Redirect to login page
-    navigate("/patient/login");
+    setTimeout(() => {
+      navigate("/patient/login");
+    }, 1000);
   };
 
   return (

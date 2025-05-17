@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { mockAadhaarDB, generateDoctorId, addNewAadhaarToMockDB } from '@/utils/mockDatabase';
+import { mockAadhaarDB, generateDoctorId, addNewAadhaarToMockDB, mockDoctorDB, persistMockDatabases } from '@/utils/mockDatabase';
 
 const DoctorRegister = () => {
   const navigate = useNavigate();
@@ -20,6 +20,21 @@ const DoctorRegister = () => {
   const [specialization, setSpecialization] = useState("");
   const [hospital, setHospital] = useState("");
 
+  // Check for temp Aadhaar ID on component mount
+  useEffect(() => {
+    const tempAadhaarId = sessionStorage.getItem("tempAadhaarId");
+    if (tempAadhaarId) {
+      setAadhaarId(tempAadhaarId);
+      sessionStorage.removeItem("tempAadhaarId"); // Clear after use
+      
+      // Automatically trigger verification if Aadhaar ID was provided
+      if (tempAadhaarId.length === 12) {
+        const event = new Event('submit') as unknown as React.FormEvent;
+        handleVerifyAadhaar(event);
+      }
+    }
+  }, []);
+
   const handleVerifyAadhaar = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -30,6 +45,21 @@ const DoctorRegister = () => {
         description: "Please enter a valid 12-digit Aadhaar ID",
         variant: "destructive"
       });
+      return;
+    }
+    
+    // Check if a doctor already exists with this Aadhaar ID
+    const existingDoctor = mockDoctorDB.find(d => d.aadhaarId === aadhaarId);
+    if (existingDoctor) {
+      toast({
+        title: "Doctor Already Exists",
+        description: "An account with this Aadhaar ID already exists. Please login instead.",
+        variant: "destructive"
+      });
+      
+      setTimeout(() => {
+        navigate("/doctor/login");
+      }, 1000);
       return;
     }
     
@@ -92,16 +122,20 @@ const DoctorRegister = () => {
       return;
     }
     
-    // Store doctor data in session storage
+    // Create new doctor record
     const doctorData = {
-      ...userData,
+      aadhaarId,
       doctorId,
+      email: userData.email,
+      password: "password123", // Default password
+      name: userData.name,
       specialization,
       hospitalAffiliation: hospital
     };
     
-    sessionStorage.setItem("userType", "doctor");
-    sessionStorage.setItem("userData", JSON.stringify(doctorData));
+    // Add to mock database
+    mockDoctorDB.push(doctorData);
+    persistMockDatabases();
     
     toast({
       title: "Registration Successful",
@@ -109,7 +143,9 @@ const DoctorRegister = () => {
     });
     
     // Redirect to login page
-    navigate("/doctor/login");
+    setTimeout(() => {
+      navigate("/doctor/login");
+    }, 1000);
   };
 
   return (

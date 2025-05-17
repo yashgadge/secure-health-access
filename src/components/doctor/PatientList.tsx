@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,33 @@ const PatientList: React.FC<PatientListProps> = ({
 }) => {
   const { toast } = useToast();
   const [searchType, setSearchType] = useState<'patientId' | 'aadhaarId'>('patientId');
+  const [patientData, setPatientData] = useState<any[]>([]);
+
+  // Load patient data on component mount and whenever localStorage updates
+  useEffect(() => {
+    // Get patient data from localStorage
+    const storedPatientData = localStorage.getItem('patientDB');
+    if (storedPatientData) {
+      try {
+        const parsedData = JSON.parse(storedPatientData);
+        setPatientData(parsedData);
+        console.log("Loaded patient data from localStorage:", parsedData);
+      } catch (error) {
+        console.error("Error parsing patient data:", error);
+      }
+    } else {
+      setPatientData(mockPatientDB);
+      console.log("Using mock patient data:", mockPatientDB);
+    }
+  }, []);
 
   const validateAndSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Log the current mock database for debugging
+    // Log the current patient data for debugging
+    console.log("Current patient data for search:", patientData);
     console.log("Current mockPatientDB:", mockPatientDB);
+    console.log("Searching for:", patientIdentifier, "using type:", searchType);
     
     if (!patientIdentifier.trim()) {
       toast({
@@ -35,14 +56,14 @@ const PatientList: React.FC<PatientListProps> = ({
       return;
     }
 
-    // Check if we can find the patient in the mockPatientDB
+    // Check if we can find the patient in the patientData
     let patientExists = false;
     
     if (searchType === 'patientId') {
-      patientExists = mockPatientDB.some(patient => patient.patientId === patientIdentifier);
+      patientExists = patientData.some(patient => patient.patientId === patientIdentifier);
       console.log("Searching by patientId:", patientIdentifier, "Found:", patientExists);
     } else {
-      patientExists = mockPatientDB.some(patient => patient.aadhaarId === patientIdentifier);
+      patientExists = patientData.some(patient => patient.aadhaarId === patientIdentifier);
       console.log("Searching by aadhaarId:", patientIdentifier, "Found:", patientExists);
     }
 

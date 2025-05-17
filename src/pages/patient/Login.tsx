@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,18 @@ const PatientLogin = () => {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'aadhaar' | 'patientId'>('aadhaar');
-
+  
+  // Check for existing login on component mount
+  useEffect(() => {
+    const userType = localStorage.getItem("userType");
+    const userData = localStorage.getItem("userData");
+    
+    if (userType === "patient" && userData) {
+      // User is already logged in as a patient
+      navigate("/patient-dashboard");
+    }
+  }, [navigate]);
+  
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -46,11 +57,19 @@ const PatientLogin = () => {
       // Verify patient registration
       const patientExists = mockPatientDB.some(p => p.aadhaarId === identifier);
       if (userData && !patientExists) {
+        // Patient not registered yet, redirect to registration
         toast({
           title: "Registration Required",
-          description: "Your Aadhaar is valid but you need to register as a patient first",
-          variant: "destructive"
+          description: "Your Aadhaar is valid but you need to register as a patient first. Redirecting...",
         });
+        
+        // Store the Aadhaar ID in sessionStorage for the registration page
+        sessionStorage.setItem("tempAadhaarId", identifier);
+        
+        // Redirect to registration page after a short delay
+        setTimeout(() => {
+          navigate("/patient/register");
+        }, 1000);
         return;
       }
     } else {
@@ -123,7 +142,7 @@ const PatientLogin = () => {
         description: `Welcome, ${userData.name}!`,
       });
       
-      navigate("/patient/dashboard");
+      navigate("/patient-dashboard");
     } else {
       toast({
         title: "Login Failed",

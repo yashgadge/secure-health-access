@@ -42,12 +42,21 @@ const DoctorLogin = () => {
     
     // Check if doctor exists with this Aadhaar ID
     const doctorExists = mockDoctorDB.some(d => d.aadhaarId === aadhaarId);
+    
     if (!doctorExists) {
+      // Doctor not found, redirect to registration
       toast({
-        title: "Doctor not found",
-        description: "No doctor account found with this Aadhaar ID. Please register first.",
-        variant: "destructive"
+        title: "Registration Required",
+        description: "No doctor account found. Redirecting to registration...",
       });
+      
+      // Store the Aadhaar ID in sessionStorage for the registration page
+      sessionStorage.setItem("tempAadhaarId", aadhaarId);
+      
+      // Redirect to registration page
+      setTimeout(() => {
+        navigate("/doctor/register");
+      }, 1000);
       return;
     }
     
