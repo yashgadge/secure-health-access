@@ -19,6 +19,16 @@ import {
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Define interfaces for better type safety
+interface MonthGroup {
+  label: string;
+  entries: any[];
+}
+
+interface MonthGroups {
+  [key: string]: MonthGroup;
+}
+
 const PatientHistory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -148,7 +158,7 @@ const PatientHistory = () => {
 
   // Group medical records by month for monthly view
   const groupedByMonth = React.useMemo(() => {
-    const groups: Record<string, any[]> = {};
+    const groups: MonthGroups = {};
     
     medicalHistory.forEach(entry => {
       const date = new Date(entry.date);
@@ -165,7 +175,8 @@ const PatientHistory = () => {
       groups[monthKey].entries.push(entry);
     });
     
-    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a)); // Sort by date desc
+    // Convert object to array of entries and sort
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
   }, [medicalHistory]);
 
   if (!doctorData || !patientData) {
