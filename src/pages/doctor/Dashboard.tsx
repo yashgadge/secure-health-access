@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -318,125 +319,152 @@ const DoctorDashboard = () => {
             </TabsTrigger>
           </TabsList>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Patient</CardTitle>
-                  <CardDescription>Add a patient to your care list</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="Enter Patient ID (e.g., PAT103245)"
-                      value={patientIdToAdd}
-                      onChange={(e) => setPatientIdToAdd(e.target.value)}
-                    />
-                    <Button 
-                      onClick={handleAddPatient} 
-                      disabled={loadingAdd}
-                      className="shrink-0"
-                    >
-                      <span className="mr-2">+</span>
-                      Add
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Patients</CardTitle>
-                  <CardDescription>{myPatients.length} patients under your care</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {myPatients.length > 0 ? (
-                    <div className="space-y-4">
-                      {myPatients.map((patient) => (
-                        <div 
-                          key={patient.patientId} 
-                          className="p-4 border rounded-md flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                          onClick={() => handleViewPatient(patient)}
-                        >
-                          <div>
-                            <h3 className="font-medium">{patient.name}</h3>
-                            <p className="text-sm text-gray-500">ID: {patient.patientId}</p>
-                          </div>
-                          <Button variant="outline" size="sm">View</Button>
-                        </div>
-                      ))}
+          <TabsContent value="myPatients">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add New Patient</CardTitle>
+                    <CardDescription>Add a patient to your care list</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex space-x-2">
+                      <Input
+                        placeholder="Enter Patient ID (e.g., PAT103245)"
+                        value={patientIdToAdd}
+                        onChange={(e) => setPatientIdToAdd(e.target.value)}
+                      />
+                      <Button 
+                        onClick={handleAddPatient} 
+                        disabled={loadingAdd}
+                        className="shrink-0"
+                      >
+                        <span className="mr-2">+</span>
+                        Add
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No patients yet
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Request Access</CardTitle>
-                  <CardDescription>Request access to patient records</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="Enter Patient ID (e.g., PAT103245)"
-                      value={patientIdForAccess}
-                      onChange={(e) => setPatientIdForAccess(e.target.value)}
-                    />
-                    <Button 
-                      onClick={handleRequestAccess} 
-                      disabled={loadingRequest}
-                      className="shrink-0"
-                    >
-                      <span className="mr-2">🔍</span>
-                      Request
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pending Requests</CardTitle>
-                  <CardDescription>Access requests awaiting patient approval</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {accessRequests.length > 0 ? (
-                    <div className="space-y-4">
-                      {accessRequests.map((request: any) => {
-                        const patient = mockPatientDB.find(p => p.patientId === request.patientId);
-                        return (
-                          <div key={request.id} className="p-4 border rounded-md">
-                            <div className="flex justify-between">
-                              <div>
-                                <h3 className="font-medium">{patient?.name || "Unknown Patient"}</h3>
-                                <p className="text-sm text-gray-500">ID: {request.patientId}</p>
-                              </div>
-                              <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
-                                Pending
-                              </span>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My Patients</CardTitle>
+                    <CardDescription>{myPatients.length} patients under your care</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {myPatients.length > 0 ? (
+                      <div className="space-y-4">
+                        {myPatients.map((patient) => (
+                          <div 
+                            key={patient.patientId} 
+                            className="p-4 border rounded-md flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleViewPatient(patient)}
+                          >
+                            <div>
+                              <h3 className="font-medium">{patient.name}</h3>
+                              <p className="text-sm text-gray-500">ID: {patient.patientId}</p>
                             </div>
-                            <p className="text-xs text-gray-400 mt-2">
-                              Requested: {new Date(request.requestDate).toLocaleDateString()}
-                            </p>
+                            <Button variant="outline" size="sm">View</Button>
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        No patients yet
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Request Access</CardTitle>
+                    <CardDescription>Request access to patient records</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex space-x-2">
+                      <Input
+                        placeholder="Enter Patient ID (e.g., PAT103245)"
+                        value={patientIdForAccess}
+                        onChange={(e) => setPatientIdForAccess(e.target.value)}
+                      />
+                      <Button 
+                        onClick={handleRequestAccess} 
+                        disabled={loadingRequest}
+                        className="shrink-0"
+                      >
+                        <span className="mr-2">🔍</span>
+                        Request
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No pending requests
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Pending Requests</CardTitle>
+                    <CardDescription>Access requests awaiting patient approval</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {accessRequests.length > 0 ? (
+                      <div className="space-y-4">
+                        {accessRequests.map((request: any) => {
+                          const patient = mockPatientDB.find(p => p.patientId === request.patientId);
+                          return (
+                            <div key={request.id} className="p-4 border rounded-md">
+                              <div className="flex justify-between">
+                                <div>
+                                  <h3 className="font-medium">{patient?.name || "Unknown Patient"}</h3>
+                                  <p className="text-sm text-gray-500">ID: {request.patientId}</p>
+                                </div>
+                                <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+                                  Pending
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-2">
+                                Requested: {new Date(request.requestDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        No pending requests
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
+          </TabsContent>
+          
+          <TabsContent value="patientHistory">
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient Search</CardTitle>
+                <CardDescription>Search for a patient by ID or Aadhaar number</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Enter Patient ID or Aadhaar Number"
+                    value={patientIdForAccess}
+                    onChange={(e) => setPatientIdForAccess(e.target.value)}
+                  />
+                  <Button 
+                    onClick={handleRequestAccess} 
+                    disabled={loadingRequest}
+                    className="shrink-0"
+                  >
+                    Search
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </Layout>

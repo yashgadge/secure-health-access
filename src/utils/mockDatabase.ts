@@ -56,7 +56,7 @@ export const mockPatientDB = [
     email: "rahul.sharma@example.com",
     phone: "9876543210",
     address: "123 Main Street, Mumbai, Maharashtra",
-    authorizedDoctors: ["DOC987654", "DOC765432", "DOC654321"] // Added more authorized doctors for demo
+    authorizedDoctors: [] // Removed authorized doctors to match screenshots
   },
   {
     aadhaarId: "234567890123",
@@ -127,105 +127,11 @@ export const mockDoctorDB = [
   }
 ];
 
-// Mock medical history database
+// Mock medical history database - emptying entries for user 123456789012 to match screenshots
 export const mockMedicalHistoryDB = [
   {
     patientId: "PAT103245",
-    entries: [
-      {
-        id: "MH001",
-        date: "2023-10-15",
-        doctorId: "DOC987654",
-        doctorName: "Dr. Anjali Desai",
-        notes: "Patient presented with symptoms of common cold. Prescribed antihistamines and rest.",
-        documents: [
-          {
-            name: "Prescription.pdf",
-            url: "#"
-          }
-        ]
-      },
-      {
-        id: "MH002",
-        date: "2023-09-02",
-        doctorId: "DOC987654",
-        doctorName: "Dr. Anjali Desai",
-        notes: "Routine check-up. Blood pressure normal. Recommended regular exercise.",
-        documents: [
-          {
-            name: "BloodTest.pdf",
-            url: "#"
-          },
-          {
-            name: "CheckupReport.pdf",
-            url: "#"
-          }
-        ]
-      },
-      {
-        id: "MH003",
-        date: "2024-01-10",
-        doctorId: "DOC765432",
-        doctorName: "Dr. Vikram Singh",
-        notes: "Patient reported occasional headaches. Recommended stress management techniques and proper sleep hygiene.",
-        documents: [
-          {
-            name: "HeadacheDiagnosis.pdf",
-            url: "#"
-          }
-        ]
-      },
-      {
-        id: "MH004",
-        date: "2024-03-25",
-        doctorName: "Self Upload",
-        notes: "Uploaded personal health records from annual employer health checkup.",
-        documents: [
-          {
-            name: "AnnualCheckup2024.pdf",
-            url: "#"
-          },
-          {
-            name: "BloodWorkResults.pdf",
-            url: "#"
-          }
-        ]
-      },
-      {
-        id: "MH005",
-        date: "2024-05-08", 
-        doctorId: "DOC654321",
-        doctorName: "Dr. Rohit Kumar",
-        notes: "Patient visited for flu symptoms. Prescribed antibiotics and rest for 5 days. Follow up if symptoms persist.",
-        documents: [
-          {
-            name: "FluPrescription.pdf",
-            url: "#"
-          },
-          {
-            name: "MedicationInstructions.pdf",
-            url: "#"
-          }
-        ]
-      },
-      {
-        id: "MH006",
-        date: "2024-05-17",
-        doctorId: "DOC987654",
-        doctorName: "Dr. Anjali Desai",
-        notes: "Patient complained of occasional chest pain after exercise. ECG conducted and no abnormalities found. Recommended cardiac stress test as precautionary measure.",
-        documents: [
-          {
-            name: "ECGReport.pdf",
-            url: "#"
-          },
-          {
-            name: "CardiacTestReferral.pdf",
-            url: "#"
-          }
-        ]
-      }
-    ]
+    entries: []
   },
   {
     patientId: "PAT204356",
@@ -272,15 +178,8 @@ export const mockMedicalHistoryDB = [
   }
 ];
 
-// Mock access requests database
+// Mock access requests database - emptying for user PAT103245 to match screenshots
 export const mockAccessRequestsDB = [
-  {
-    id: "REQ123456",
-    doctorId: "DOC654321",
-    patientId: "PAT103245",
-    status: "pending",
-    requestDate: "2024-05-15T10:30:00Z"
-  },
   {
     id: "REQ234567",
     doctorId: "DOC765432",
@@ -288,20 +187,6 @@ export const mockAccessRequestsDB = [
     status: "pending", 
     requestDate: "2024-05-16T14:45:00Z"
   },
-  {
-    id: "REQ345678",
-    doctorId: "DOC543210",
-    patientId: "PAT103245",
-    status: "pending",
-    requestDate: "2024-05-16T09:15:00Z"
-  },
-  {
-    id: "REQ456789",
-    doctorId: "DOC432109",
-    patientId: "PAT103245",
-    status: "pending",
-    requestDate: "2024-05-17T11:20:00Z"
-  }
 ];
 
 // Mock patient files database

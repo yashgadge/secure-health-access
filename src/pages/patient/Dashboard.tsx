@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Check, Upload, FileText, Clock } from 'lucide-react';
+import { X, Check, Upload, FileText, Clock, Heart } from 'lucide-react';
 import { 
   mockMedicalHistoryDB, 
   mockDoctorDB, 
@@ -373,28 +373,16 @@ const PatientDashboard = () => {
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-gray-100 p-1">
-            <TabsTrigger 
-              value="profile" 
-              className={`px-6 py-2 ${activeTab === 'profile' ? 'bg-white shadow-sm' : ''}`}
-            >
+            <TabsTrigger value="profile">
               Profile
             </TabsTrigger>
-            <TabsTrigger 
-              value="doctors" 
-              className={`px-6 py-2 ${activeTab === 'doctors' ? 'bg-white shadow-sm' : ''}`}
-            >
+            <TabsTrigger value="doctors">
               Doctor Access
             </TabsTrigger>
-            <TabsTrigger 
-              value="medical" 
-              className={`px-6 py-2 ${activeTab === 'medical' ? 'bg-white shadow-sm' : ''}`}
-            >
+            <TabsTrigger value="medical">
               Medical History
             </TabsTrigger>
-            <TabsTrigger 
-              value="requests" 
-              className={`px-6 py-2 ${activeTab === 'requests' ? 'bg-white shadow-sm' : ''}`}
-            >
+            <TabsTrigger value="requests">
               Access Requests
             </TabsTrigger>
           </TabsList>
