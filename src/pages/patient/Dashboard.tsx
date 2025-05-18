@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -15,7 +16,7 @@ import {
   mockMedicalHistoryDB, 
   mockDoctorDB, 
   mockPatientFilesDB,
-  mockPatientDB, // Added this import
+  mockPatientDB, 
   getAccessRequests, 
   updateAccessRequest,
   persistMockDatabases
@@ -97,8 +98,8 @@ const FileUploader = ({ patientId, onUploadComplete }: { patientId: string, onUp
           {
             id: `MH${Date.now()}`,
             date: new Date().toISOString().slice(0, 10),
-            doctorId: "", // Add doctorId property
-            doctorName: "Self Upload", // Add doctorName property
+            doctorId: "",
+            doctorName: "Self Upload",
             notes: fileDescription || `Uploaded ${file.name}`,
             documents: [
               {
@@ -114,8 +115,8 @@ const FileUploader = ({ patientId, onUploadComplete }: { patientId: string, onUp
       mockMedicalHistoryDB[patientHistoryIndex].entries.push({
         id: `MH${Date.now()}`,
         date: new Date().toISOString().slice(0, 10),
-        doctorId: "", // Add doctorId property
-        doctorName: "Self Upload", // Add doctorName property
+        doctorId: "",
+        doctorName: "Self Upload",
         notes: fileDescription || `Uploaded ${file.name}`,
         documents: [
           {
@@ -201,6 +202,7 @@ const PatientDashboard = () => {
   const [showAlertDialog, setShowAlertDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   
   useEffect(() => {
     // Check if user is logged in
@@ -233,22 +235,6 @@ const PatientDashboard = () => {
       });
       navigate("/patient/login");
     }
-    
-    // Set up interval to refresh data every 30 seconds
-    const intervalId = setInterval(() => {
-      const storedUserData = localStorage.getItem("userData");
-      if (storedUserData) {
-        try {
-          const parsedUserData = JSON.parse(storedUserData);
-          loadDashboardData(parsedUserData);
-        } catch (err) {
-          console.error("Error refreshing data:", err);
-        }
-      }
-    }, 30000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
   }, [navigate, toast]);
   
   useEffect(() => {
@@ -386,201 +372,223 @@ const PatientDashboard = () => {
           <Button variant="outline" onClick={handleLogout}>Logout</Button>
         </div>
         
-        <Tabs defaultValue="profile">
-          <TabsList className="mb-8">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="doctors">Doctor Access</TabsTrigger>
-            <TabsTrigger value="history">Medical History</TabsTrigger>
-            <TabsTrigger value="requests">Access Requests</TabsTrigger>
+        <div className="mb-6">
+          <TabsList className="bg-gray-100 p-1">
+            <TabsTrigger 
+              value="profile" 
+              className={`px-6 py-2 ${activeTab === 'profile' ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setActiveTab("profile")}
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger 
+              value="doctors" 
+              className={`px-6 py-2 ${activeTab === 'doctors' ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setActiveTab("doctors")}
+            >
+              Doctor Access
+            </TabsTrigger>
+            <TabsTrigger 
+              value="medical" 
+              className={`px-6 py-2 ${activeTab === 'medical' ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setActiveTab("medical")}
+            >
+              Medical History
+            </TabsTrigger>
+            <TabsTrigger 
+              value="requests" 
+              className={`px-6 py-2 ${activeTab === 'requests' ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setActiveTab("requests")}
+            >
+              Access Requests
+            </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Patient Profile</CardTitle>
-                <CardDescription>Your personal information from Aadhaar</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Patient ID</p>
-                      <p className="font-medium">{userData.patientId}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Aadhaar ID</p>
-                      <p className="font-medium">{userData.aadhaarId}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">{userData.name}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{userData.email}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium">{userData.phone}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500">Address</p>
-                      <p className="font-medium">{userData.address}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 pt-4">
-                    Note: Personal details cannot be edited as they are linked to your Aadhaar.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="doctors">
-            <Card>
-              <CardHeader>
-                <CardTitle>Authorized Doctors</CardTitle>
-                <CardDescription>Manage which doctors have access to your medical records</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {authorizedDoctors.length > 0 ? (
-                  <div className="space-y-4">
-                    {authorizedDoctors.map((doctor) => (
-                      <div key={doctor.doctorId} className="flex items-center justify-between p-4 border rounded-md">
-                        <div>
-                          <p className="font-medium">{doctor.name}</p>
-                          <p className="text-sm text-gray-500">{doctor.specialization}, {doctor.hospitalAffiliation}</p>
-                          <p className="text-xs text-gray-400">ID: {doctor.doctorId}</p>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-red-500 border-red-200 hover:bg-red-50"
-                          onClick={() => handleRevokeAccess(doctor.doctorId)}
-                        >
-                          <X className="h-4 w-4 mr-1" /> Revoke Access
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No doctors currently have access to your records.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="history">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+        </div>
+        
+        {activeTab === "profile" && (
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Patient Profile</CardTitle>
+              <CardDescription>Your personal information from Aadhaar</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <CardTitle>Medical History Timeline</CardTitle>
-                  <CardDescription>View your complete medical history in chronological order</CardDescription>
+                  <h3 className="text-sm text-gray-500">Patient ID</h3>
+                  <p className="font-medium text-lg">{userData.patientId}</p>
                 </div>
-                <Button onClick={() => setShowUploadDialog(true)}>
-                  <Upload className="h-4 w-4 mr-2" /> Upload
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {medicalHistory.length > 0 ? (
-                  <div className="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-6 before:w-[2px] before:bg-gray-200">
-                    {medicalHistory.map((entry) => (
-                      <div key={entry.id} className="relative pl-14">
-                        <div className="absolute left-5 w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 mt-1 z-10"></div>
-                        <div className="mb-1 flex items-center">
-                          <p className="font-medium">{new Date(entry.date).toLocaleDateString()}</p>
-                          {entry.doctorName && (
-                            <>
-                              <span className="mx-2 text-gray-400">•</span>
-                              <p className="text-gray-500">{entry.doctorName}</p>
-                            </>
-                          )}
-                        </div>
-                        <div className="p-4 bg-gray-50 rounded-md">
-                          <p className="mb-3">{entry.notes}</p>
-                          {entry.documents && entry.documents.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-sm font-medium mb-2">Documents:</p>
-                              <div className="flex flex-wrap gap-2">
-                                {entry.documents.map((doc: any, idx: number) => (
-                                  <Button key={idx} variant="outline" size="sm" asChild>
-                                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                                      <FileText className="h-4 w-4 mr-1" /> {doc.name}
-                                    </a>
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                <div>
+                  <h3 className="text-sm text-gray-500">Aadhaar ID</h3>
+                  <p className="font-medium text-lg">{userData.aadhaarId}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm text-gray-500">Name</h3>
+                  <p className="font-medium text-lg">{userData.name}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm text-gray-500">Email</h3>
+                  <p className="font-medium text-lg">{userData.email}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm text-gray-500">Phone</h3>
+                  <p className="font-medium text-lg">{userData.phone}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm text-gray-500">Address</h3>
+                  <p className="font-medium text-lg">{userData.address}</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 pt-4">
+                Note: Personal details cannot be edited as they are linked to your Aadhaar.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        
+        {activeTab === "doctors" && (
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Authorized Doctors</CardTitle>
+              <CardDescription>Manage which doctors have access to your medical records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {authorizedDoctors.length > 0 ? (
+                <div className="space-y-4">
+                  {authorizedDoctors.map((doctor) => (
+                    <div key={doctor.doctorId} className="p-4 border rounded-md flex justify-between items-center bg-white shadow-sm">
+                      <div>
+                        <p className="font-medium text-lg">{doctor.name}</p>
+                        <p className="text-sm text-gray-500">{doctor.specialization}, {doctor.hospitalAffiliation}</p>
+                        <p className="text-xs text-gray-400">ID: {doctor.doctorId}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No medical history records found.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="requests">
-            <Card>
-              <CardHeader>
-                <CardTitle>Doctor Access Requests</CardTitle>
-                <CardDescription>Approve or deny doctor access to your medical records</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {accessRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {accessRequests.map((request: any) => {
-                      const doctor = mockDoctorDB.find(d => d.doctorId === request.doctorId);
-                      return (
-                        <div key={request.id} className="p-4 border rounded-md">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">{doctor?.name || "Unknown Doctor"}</h3>
-                              <p className="text-sm text-gray-500">{doctor?.specialization}, {doctor?.hospitalAffiliation}</p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                <Clock className="h-3 w-3 inline mr-1" />
-                                Requested: {new Date(request.requestDate).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="space-x-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
-                                onClick={() => handleApproveRequest(request)}
-                              >
-                                <Check className="h-4 w-4 mr-1" /> Approve
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                                onClick={() => handleRejectRequest(request)}
-                              >
-                                <X className="h-4 w-4 mr-1" /> Reject
-                              </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-500 border-red-200 hover:bg-red-50"
+                        onClick={() => handleRevokeAccess(doctor.doctorId)}
+                      >
+                        <X className="h-4 w-4 mr-1" /> Revoke Access
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No doctors currently have access to your records.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+        
+        {activeTab === "medical" && (
+          <Card className="shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Medical History Timeline</CardTitle>
+                <CardDescription>View your complete medical history in chronological order</CardDescription>
+              </div>
+              <Button onClick={() => setShowUploadDialog(true)} className="bg-blue-500 hover:bg-blue-600">
+                <Upload className="h-4 w-4 mr-2" /> Upload
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {medicalHistory.length > 0 ? (
+                <div className="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-6 before:w-[2px] before:bg-blue-200">
+                  {medicalHistory.map((entry) => (
+                    <div key={entry.id} className="relative pl-14">
+                      <div className="absolute left-5 w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 mt-1 z-10"></div>
+                      <div className="mb-1 flex items-center">
+                        <p className="font-medium">{new Date(entry.date).toLocaleDateString('en-GB')}</p>
+                        {entry.doctorName && (
+                          <>
+                            <span className="mx-2 text-gray-400">•</span>
+                            <p className="text-gray-500">{entry.doctorName}</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-md shadow-sm">
+                        <p className="mb-3">{entry.notes}</p>
+                        {entry.documents && entry.documents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-sm font-medium mb-2">Documents:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {entry.documents.map((doc: any, idx: number) => (
+                                <Button key={idx} variant="outline" size="sm" asChild>
+                                  <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                    <FileText className="h-4 w-4 mr-1" /> {doc.name}
+                                  </a>
+                                </Button>
+                              ))}
                             </div>
                           </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No medical history records found.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+        
+        {activeTab === "requests" && (
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Doctor Access Requests</CardTitle>
+              <CardDescription>Approve or deny doctor access to your medical records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {accessRequests.length > 0 ? (
+                <div className="space-y-4">
+                  {accessRequests.map((request: any) => {
+                    const doctor = mockDoctorDB.find(d => d.doctorId === request.doctorId);
+                    return (
+                      <div key={request.id} className="p-4 border rounded-md bg-white shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">{doctor?.name || "Unknown Doctor"}</h3>
+                            <p className="text-sm text-gray-500">{doctor?.specialization}, {doctor?.hospitalAffiliation}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              <Clock className="h-3 w-3 inline mr-1" />
+                              Requested: {new Date(request.requestDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
+                              onClick={() => handleApproveRequest(request)}
+                            >
+                              <Check className="h-4 w-4 mr-1" /> Approve
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                              onClick={() => handleRejectRequest(request)}
+                            >
+                              <X className="h-4 w-4 mr-1" /> Reject
+                            </Button>
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No pending access requests.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No pending access requests.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         
         {/* Revoke Access Confirmation Dialog */}
         <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>

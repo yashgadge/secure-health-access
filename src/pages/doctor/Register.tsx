@@ -48,6 +48,19 @@ const DoctorRegister = () => {
       return;
     }
     
+    // For demo purpose - if it's the predefined Aadhaar, redirect to login
+    if (aadhaarId === "345678901234") {
+      toast({
+        title: "Already Registered",
+        description: "This Aadhaar is already registered. Redirecting to login...",
+      });
+      
+      setTimeout(() => {
+        navigate("/doctor/login");
+      }, 1000);
+      return;
+    }
+    
     // Check if a doctor already exists with this Aadhaar ID
     const existingDoctor = mockDoctorDB.find(d => d.aadhaarId === aadhaarId);
     if (existingDoctor) {
@@ -152,8 +165,8 @@ const DoctorRegister = () => {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="text-center">
               <CardTitle className="text-2xl">Doctor Registration</CardTitle>
               <CardDescription>
                 Register using your Aadhaar ID to create your doctor profile
@@ -178,7 +191,11 @@ const DoctorRegister = () => {
                       <p className="text-sm text-gray-500">Enter any 12-digit number for testing</p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Verify Aadhaar</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Verify Aadhaar</Button>
+                    
+                    <p className="text-sm text-gray-500 text-center mt-2">
+                      By registering, you agree to our Terms of Service and Privacy Policy
+                    </p>
                   </div>
                 </form>
               ) : (
@@ -187,7 +204,7 @@ const DoctorRegister = () => {
                     {/* Display auto-filled details */}
                     <div className="grid gap-4 p-4 bg-gray-50 rounded-md">
                       <h3 className="font-medium">Auto-filled Details from Aadhaar</h3>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="grid grid-cols-2 gap-y-3">
                         <div className="text-gray-500">Name:</div>
                         <div className="font-medium">{userData?.name}</div>
                         <div className="text-gray-500">Email:</div>
@@ -240,17 +257,11 @@ const DoctorRegister = () => {
                       </p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Complete Registration</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Complete Registration</Button>
                   </div>
                 </form>
               )}
             </CardContent>
-            
-            <CardFooter className="flex flex-col">
-              <p className="text-sm text-gray-500 text-center w-full">
-                By registering, you agree to our Terms of Service and Privacy Policy
-              </p>
-            </CardFooter>
           </Card>
         </div>
       </div>

@@ -40,38 +40,43 @@ const DoctorLogin = () => {
       return;
     }
     
+    // For demo doctor IDs, always allow login
+    if (aadhaarId === "345678901234" || aadhaarId === "456789012345" || aadhaarId === "678901234567") {
+      const userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
+      
+      setOtpSent(true);
+      toast({
+        title: "OTP Sent",
+        description: `A mock OTP has been sent to ${userData?.phone.substring(0, 2)}****${userData?.phone.substring(6)}`,
+      });
+      return;
+    }
+    
     // Check if doctor exists with this Aadhaar ID
     const doctorExists = mockDoctorDB.some(d => d.aadhaarId === aadhaarId);
     
     if (!doctorExists) {
-      // Doctor not found, redirect to registration
+      // For non-demo Aadhaar IDs, redirect to registration
       toast({
         title: "Registration Required",
-        description: "No doctor account found. Redirecting to registration...",
+        description: "Please register first before logging in",
+        variant: "destructive"
       });
       
-      // Store the Aadhaar ID in sessionStorage for the registration page
-      sessionStorage.setItem("tempAadhaarId", aadhaarId);
-      
-      // Redirect to registration page
       setTimeout(() => {
         navigate("/doctor/register");
       }, 1000);
       return;
     }
     
-    // Find user in Aadhaar DB or add it if it doesn't exist
-    let userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
-    if (!userData) {
-      // In case the doctor record exists but Aadhaar record doesn't
-      userData = addNewAadhaarToMockDB(aadhaarId);
-    }
+    // Find user in Aadhaar DB
+    const userData = mockAadhaarDB.find(p => p.aadhaarId === aadhaarId);
     
     // Mock OTP sending
     setOtpSent(true);
     toast({
       title: "OTP Sent",
-      description: `A mock OTP has been sent to ${userData.phone.substring(0, 2)}****${userData.phone.substring(6)}`,
+      description: `A mock OTP has been sent to ${userData?.phone.substring(0, 2)}****${userData?.phone.substring(6)}`,
     });
   };
 
@@ -116,8 +121,8 @@ const DoctorLogin = () => {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="text-center">
               <CardTitle className="text-2xl">Doctor Login</CardTitle>
               <CardDescription>
                 Access your medical dashboard securely
@@ -142,7 +147,7 @@ const DoctorLogin = () => {
                       <p className="text-sm text-gray-500">For demo: Try 345678901234</p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Get OTP</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Get OTP</Button>
                   </div>
                 </form>
               ) : (
@@ -164,7 +169,7 @@ const DoctorLogin = () => {
                       </p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Verify OTP</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Verify OTP</Button>
                   </div>
                 </form>
               )}

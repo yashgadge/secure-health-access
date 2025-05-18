@@ -32,13 +32,31 @@ const PatientLogin = () => {
   const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("Attempting to send OTP for:", identifier);
-    console.log("Available patients:", mockPatientDB);
-    console.log("Available Aadhaar records:", mockAadhaarDB);
+    // For demo purposes, always allow login for the demo Aadhaar IDs
+    if (identifier === "123456789012" || identifier === "234567890123" || identifier === "567890123456") {
+      // Find user data for the demo Aadhaar
+      const userData = mockAadhaarDB.find(p => p.aadhaarId === identifier);
+      
+      // Mock OTP sending
+      setOtpSent(true);
+      toast({
+        title: "OTP Sent",
+        description: `A mock OTP has been sent to ${userData?.phone.substring(0, 2)}****${userData?.phone.substring(6)}`,
+      });
+      return;
+    }
     
-    let isValid = false;
-    let userData = null;
+    if (loginMethod === 'patientId' && (identifier === "PAT103245" || identifier === "PAT204356" || identifier === "PAT305467")) {
+      // These are our demo patient IDs
+      setOtpSent(true);
+      toast({
+        title: "OTP Sent",
+        description: "A mock OTP has been sent to your registered phone number",
+      });
+      return;
+    }
     
+    // For other identifiers, validate properly
     if (loginMethod === 'aadhaar') {
       // Validate Aadhaar ID
       if (identifier.length !== 12 || !/^\d+$/.test(identifier)) {
@@ -51,27 +69,30 @@ const PatientLogin = () => {
       }
       
       // Check if Aadhaar ID exists
-      userData = mockAadhaarDB.find(p => p.aadhaarId === identifier);
-      isValid = !!userData;
+      const userData = mockAadhaarDB.find(p => p.aadhaarId === identifier);
       
-      // Verify patient registration
+      // Check patient registration
       const patientExists = mockPatientDB.some(p => p.aadhaarId === identifier);
-      if (userData && !patientExists) {
-        // Patient not registered yet, redirect to registration
+      
+      if (!userData || !patientExists) {
+        // For any non-demo Aadhaar, just show a registration message
         toast({
           title: "Registration Required",
-          description: "Your Aadhaar is valid but you need to register as a patient first. Redirecting...",
+          description: "Please register first before logging in",
+          variant: "destructive"
         });
         
-        // Store the Aadhaar ID in sessionStorage for the registration page
-        sessionStorage.setItem("tempAadhaarId", identifier);
-        
-        // Redirect to registration page after a short delay
         setTimeout(() => {
           navigate("/patient/register");
         }, 1000);
         return;
       }
+      
+      setOtpSent(true);
+      toast({
+        title: "OTP Sent",
+        description: `A mock OTP has been sent to ${userData.phone.substring(0, 2)}****${userData.phone.substring(6)}`,
+      });
     } else {
       // Validate Patient ID
       if (!identifier.startsWith("PAT") || identifier.length !== 9) {
@@ -84,34 +105,33 @@ const PatientLogin = () => {
       }
       
       // Check if Patient ID exists
-      const patient = mockPatientDB.find(p => p.patientId === identifier);
-      if (patient) {
-        userData = mockAadhaarDB.find(p => p.aadhaarId === patient.aadhaarId);
-        isValid = !!userData;
+      const patientExists = mockPatientDB.some(p => p.patientId === identifier);
+      
+      if (!patientExists) {
+        toast({
+          title: "Patient Not Found",
+          description: "No patient found with this ID. Please register first.",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          navigate("/patient/register");
+        }, 1000);
+        return;
       }
-    }
-    
-    if (!isValid || !userData) {
+      
+      setOtpSent(true);
       toast({
-        title: "Invalid Credentials",
-        description: "The entered information is not registered in our system",
-        variant: "destructive"
+        title: "OTP Sent",
+        description: "A mock OTP has been sent to your registered phone number",
       });
-      return;
     }
-    
-    // Mock OTP sending
-    setOtpSent(true);
-    toast({
-      title: "OTP Sent",
-      description: `A mock OTP has been sent to ${userData.phone.substring(0, 2)}****${userData.phone.substring(6)}`,
-    });
   };
 
   const handleVerifyOTP = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Verify OTP (mock verification - any 6-digit OTP is accepted)
+    // For demo purposes, accept any 6-digit OTP
     if (otp.length !== 6 || !/^\d+$/.test(otp)) {
       toast({
         title: "Invalid OTP",
@@ -125,8 +145,7 @@ const PatientLogin = () => {
     
     if (loginMethod === 'aadhaar') {
       // Find patient by Aadhaar ID
-      const patientData = mockPatientDB.find(p => p.aadhaarId === identifier);
-      userData = patientData;
+      userData = mockPatientDB.find(p => p.aadhaarId === identifier);
     } else {
       // Find patient by Patient ID
       userData = mockPatientDB.find(p => p.patientId === identifier);
@@ -144,6 +163,7 @@ const PatientLogin = () => {
       
       navigate("/patient-dashboard");
     } else {
+      // This should rarely happen with our demo setup
       toast({
         title: "Login Failed",
         description: "Please register first before attempting to login",
@@ -156,8 +176,8 @@ const PatientLogin = () => {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="text-center">
               <CardTitle className="text-2xl">Patient Login</CardTitle>
               <CardDescription>
                 Access your medical records securely
@@ -206,7 +226,7 @@ const PatientLogin = () => {
                       </TabsContent>
                     </Tabs>
                     
-                    <Button type="submit" className="w-full mt-2">Get OTP</Button>
+                    <Button type="submit" className="w-full mt-2 bg-blue-500 hover:bg-blue-600">Get OTP</Button>
                   </div>
                 </form>
               ) : (
@@ -228,7 +248,7 @@ const PatientLogin = () => {
                       </p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Verify OTP</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Verify OTP</Button>
                   </div>
                 </form>
               )}
@@ -237,7 +257,7 @@ const PatientLogin = () => {
             <CardFooter className="flex justify-center">
               <p className="text-sm text-gray-500">
                 Don't have an account?{" "}
-                <Link to="/patient/register" className="text-medical-primary hover:underline">
+                <Link to="/patient/register" className="text-blue-600 hover:underline">
                   Register here
                 </Link>
               </p>

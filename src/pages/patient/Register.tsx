@@ -46,6 +46,20 @@ const PatientRegister = () => {
       return;
     }
     
+    // For demo Aadhaar IDs, handle specially
+    if (aadhaarId === "123456789012") {
+      // Redirect to login since this is our demo Aadhaar
+      toast({
+        title: "Already Registered",
+        description: "This Aadhaar is already registered. Redirecting to login...",
+      });
+      
+      setTimeout(() => {
+        navigate("/patient/login");
+      }, 1000);
+      return;
+    }
+    
     // Check if a patient already exists with this Aadhaar ID
     const existingPatient = mockPatientDB.find(p => p.aadhaarId === aadhaarId);
     if (existingPatient) {
@@ -131,8 +145,8 @@ const PatientRegister = () => {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="text-center">
               <CardTitle className="text-2xl">Patient Registration</CardTitle>
               <CardDescription>
                 Register using your Aadhaar ID to create your medical profile
@@ -157,7 +171,7 @@ const PatientRegister = () => {
                       <p className="text-sm text-gray-500">Enter any 12-digit number for testing</p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Verify Aadhaar</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Verify Aadhaar</Button>
                   </div>
                 </form>
               ) : (
@@ -194,7 +208,7 @@ const PatientRegister = () => {
                       </p>
                     </div>
                     
-                    <Button type="submit" className="w-full">Complete Registration</Button>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">Complete Registration</Button>
                   </div>
                 </form>
               )}
