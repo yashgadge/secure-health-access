@@ -7,7 +7,7 @@ interface ProfileTabProps {
 }
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ userData }) => {
-  // Fixed user data for PAT540726
+  // Fixed user data to show regardless of who logs in
   const fixedUserData = {
     patientId: "PAT540726",
     aadhaarId: "123456789012",
@@ -17,8 +17,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ userData }) => {
     address: "908 Joshi Street, Chennai"
   };
 
-  // Use fixed data if the patient ID matches, otherwise use provided userData
-  const displayData = userData?.patientId === "PAT540726" ? fixedUserData : userData;
+  // Always use the fixed data regardless of the userData provided
+  const displayData = fixedUserData;
 
   return (
     <Card className="shadow-md">
