@@ -2,12 +2,12 @@
 export const mockAadhaarDB = [
   {
     aadhaarId: "123456789012",
-    name: "Rahul Sharma",
+    name: "Neha Joshi",
     dob: "1990-05-15",
-    gender: "Male",
-    address: "123 Main Street, Mumbai, Maharashtra",
-    phone: "9876543210",
-    email: "rahul.sharma@example.com"
+    gender: "Female",
+    address: "908 Joshi Street, Chennai",
+    phone: "9397195857",
+    email: "neha.joshi@example.com"
   },
   {
     aadhaarId: "234567890123",
@@ -51,12 +51,12 @@ export const mockAadhaarDB = [
 export const mockPatientDB = [
   {
     aadhaarId: "123456789012",
-    patientId: "PAT103245",
-    name: "Rahul Sharma",
-    email: "rahul.sharma@example.com",
-    phone: "9876543210",
-    address: "123 Main Street, Mumbai, Maharashtra",
-    authorizedDoctors: [] // Removed authorized doctors to match screenshots
+    patientId: "PAT540726",
+    name: "Neha Joshi",
+    email: "neha.joshi@example.com",
+    phone: "9397195857",
+    address: "908 Joshi Street, Chennai",
+    authorizedDoctors: ["DOC987654", "DOC654321"] // Adding authorized doctors
   },
   {
     aadhaarId: "234567890123",
@@ -127,11 +127,50 @@ export const mockDoctorDB = [
   }
 ];
 
-// Mock medical history database - emptying entries for user 123456789012 to match screenshots
+// Mock medical history database - adding entries for the user 123456789012
 export const mockMedicalHistoryDB = [
   {
-    patientId: "PAT103245",
-    entries: []
+    patientId: "PAT540726",
+    entries: [
+      {
+        id: "MH001",
+        date: "2024-04-10",
+        doctorId: "DOC987654",
+        doctorName: "Dr. Anjali Desai",
+        notes: "Patient presented with chest pain. ECG performed, results normal. Prescribed mild pain reliever and advised rest.",
+        documents: [
+          {
+            name: "ECG_Report_10042024.pdf",
+            url: "#"
+          }
+        ]
+      },
+      {
+        id: "MH002",
+        date: "2024-03-15",
+        doctorId: "DOC654321",
+        doctorName: "Dr. Rohit Kumar",
+        notes: "Regular check-up. Blood pressure slightly elevated. Recommended dietary changes and follow-up in one month.",
+        documents: [
+          {
+            name: "BloodWork_15032024.pdf",
+            url: "#"
+          },
+          {
+            name: "DietPlan.pdf",
+            url: "#"
+          }
+        ]
+      },
+      {
+        id: "MH003",
+        date: "2024-01-22",
+        doctorId: "DOC987654",
+        doctorName: "Dr. Anjali Desai",
+        notes: "Patient complained of recurring headaches. Recommended neurological consultation and prescribed pain medication.",
+        documents: []
+      }
+    ]
   },
   {
     patientId: "PAT204356",
@@ -178,13 +217,27 @@ export const mockMedicalHistoryDB = [
   }
 ];
 
-// Mock access requests database - emptying for user PAT103245 to match screenshots
+// Mock access requests database - adding requests for PAT540726
 export const mockAccessRequestsDB = [
+  {
+    id: "REQ123456",
+    doctorId: "DOC765432",
+    patientId: "PAT540726",
+    status: "pending",
+    requestDate: "2024-05-16T10:30:00Z"
+  },
+  {
+    id: "REQ234567",
+    doctorId: "DOC432109",
+    patientId: "PAT540726",
+    status: "pending",
+    requestDate: "2024-05-15T14:45:00Z"
+  },
   {
     id: "REQ234567",
     doctorId: "DOC765432",
     patientId: "PAT305467",
-    status: "pending", 
+    status: "pending",
     requestDate: "2024-05-16T14:45:00Z"
   },
 ];
